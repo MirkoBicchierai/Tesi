@@ -39,12 +39,13 @@ def main():
     model = torch.load(save_path)
     model.eval()
     for landmark_animation, label, str_label in tqdm(testing_dataloader):
-        landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
-        landmark_animation = landmark_animation.squeeze(0)
-        with torch.no_grad():
-            output = model(landmark_animation[:, 0], label)
-            output_cpu = output.cpu()
-            plot_graph(output_cpu.numpy(), str_label)
+        pass
+        # landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
+        # landmark_animation = landmark_animation.squeeze(0)
+        # with torch.no_grad():
+        #     output = model(landmark_animation[:, 0], label)
+        #     output_cpu = output.cpu()
+        #     plot_graph(output_cpu.numpy(), str_label)
 
 
 if __name__ == "__main__":

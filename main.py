@@ -3,7 +3,7 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import torch.nn.functional as F
-from DataLoader import SingleEmotionDataset
+from DataLoader import SingleEmotionDataset, FastDataset
 from Model import DecoderRNN
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,6 +27,7 @@ def plot_graph(vector, label, epoch):
             ax.set_zlabel('Z')
             ax.scatter(x, y, z)
             ax.view_init(90, -90)
+
             plt.savefig(
                 "Grafici/" + 'epoch_' + str(epoch) + '_faccia_' + str(i) + '_' + ''.join(label) + '_frame_' + str(
                     j) + '.png')
@@ -34,15 +35,19 @@ def plot_graph(vector, label, epoch):
 
 
 def main():
+    filelist = [f for f in os.listdir("Grafici/")]
+    for f in filelist:
+        os.remove(os.path.join("Grafici/", f))
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    train_path = "dataset/SingleExpression/COMA/Partial"
-    test_path = "dataset/SingleExpression/COMA/Testing"
+    train_path = "Landmark_dataset"  # "dataset/SingleExpression/COMA/Partial"
+    test_path = "Landmark_dataset_testing"  # "dataset/SingleExpression/COMA/Testing"
     save_path = "Models/"
 
-    dataset_train = SingleEmotionDataset(train_path)
-    training_dataloader = DataLoader(dataset_train, batch_size=1, shuffle=True)
-    dataset_test = SingleEmotionDataset(test_path)
-    testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=True)
+    dataset_train = FastDataset(train_path)
+    training_dataloader = DataLoader(dataset_train, batch_size=40, shuffle=True, drop_last=False)
+    dataset_test = FastDataset(test_path)
+    testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=True, drop_last=False)
 
     hidden_size = 256
     num_classes = 10  # number of faces
@@ -50,37 +55,40 @@ def main():
     frame_generate = 60  # number of frame generate by lstm
 
     model = DecoderRNN(hidden_size, output_size, num_classes, frame_generate, device).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
 
-    epochs = 2
+    epochs = 500
     for epoch in range(epochs):
         tot_loss = 0
-        for landmark_animation, label, str_label in tqdm(training_dataloader):
-            optimizer.zero_grad()
-            landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
-            landmark_animation = landmark_animation.squeeze(0)
-            output = model(landmark_animation[:, 0], label)
-            loss = F.mse_loss(output, landmark_animation[:, 1:])
-            tot_loss += loss.item()
-            loss.backward()
-            optimizer.step()
+        for landmark_animation, label, str_label in training_dataloader:
+            for idF, frame in enumerate(landmark_animation[:, 1:]):
+                optimizer.zero_grad()
+                landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
+                output = model(landmark_animation[:, idF], label, 60-idF)
+                loss = F.mse_loss(output, landmark_animation[:, 1 + idF:])
+                tot_loss += loss.item()
+                loss.backward()
+                optimizer.step()
 
-        print("Epoch: ", epoch, " - Training loss: ", tot_loss / len(training_dataloader))
+        if not (epoch + 1) % 10:
+            print("Epoch: ", epoch + 1, " - Training loss: ", tot_loss / len(training_dataloader))
 
-        tot_loss_test = 0
-        model.eval()
-        for landmark_animation, label, str_label in tqdm(testing_dataloader):
-            landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
-            landmark_animation = landmark_animation.squeeze(0)
-            with torch.no_grad():
-                output = model(landmark_animation[:, 0], label)
-                output_cpu = output.cpu()
-                plot_graph(output_cpu.numpy(), str_label)
-            test_loss = F.mse_loss(output, landmark_animation[:, 1:])
-            tot_loss_test += test_loss.item()
+        if not (epoch + 1) % 50:
+            tot_loss_test = 0
+            model.eval()
+            check = True
+            for landmark_animation, label, str_label in testing_dataloader:
+                landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
+                with torch.no_grad():
+                    output = model(landmark_animation[:, 0], label, 60)
+                if check:
+                    plot_graph(output.cpu().numpy(), str_label, epoch + 1)
+                    check = False
+                test_loss = F.mse_loss(output, landmark_animation[:, 1:])
+                tot_loss_test += test_loss.item()
 
-        print("Epoch: ", epoch, " - Testing loss: ", tot_loss_test / len(testing_dataloader))
-        model.train()
+            print("Epoch: ", epoch + 1, " - Testing loss: ", tot_loss_test / len(testing_dataloader))
+            model.train()
 
     torch.save(model, os.path.join(save_path, "model.pt"))
 
