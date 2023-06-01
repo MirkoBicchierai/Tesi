@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_graph(vector, label):
+def plot_graph(vector, label, epoch):
     for i in range(vector.shape[0]):
         for j in range(vector.shape[1]):
             x = np.array([])
@@ -27,8 +27,11 @@ def plot_graph(vector, label):
             ax.set_zlabel('Z')
             ax.scatter(x, y, z)
             ax.view_init(90, -90)
-            plt.savefig("Grafici/" + 'faccia_' + str(i) + '_' + ''.join(label) + '_frame_' + str(j) + '.png')
+            plt.savefig(
+                "Grafici/" + 'epoch_' + str(epoch) + '_faccia_' + str(i) + '_' + ''.join(label) + '_frame_' + str(
+                    j) + '.png')
             plt.close()
+
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -41,7 +44,7 @@ def main():
     dataset_test = SingleEmotionDataset(test_path)
     testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=True)
 
-    hidden_size = 512
+    hidden_size = 256
     num_classes = 10  # number of faces
     output_size = (68 * 3)  # landmark point * coordinates
     frame_generate = 60  # number of frame generate by lstm

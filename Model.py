@@ -18,8 +18,8 @@ class DecoderRNN(nn.Module):
 
     def forward(self, inputs, labels):
         encoding = F.one_hot(labels, num_classes=self.num_classes)
-        encoding = encoding.repeat([inputs.shape[0], 1])
-        # LSTM CELL
+        #encoding = encoding.repeat([inputs.shape[0], 1])
+
         # h_t = torch.ones(inputs.shape[0], self.hidden_size, dtype=torch.float32).to(self.device)
         # c_t = torch.ones(inputs.shape[0], self.hidden_size, dtype=torch.float32).to(self.device)
 
