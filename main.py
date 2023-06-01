@@ -10,12 +10,12 @@ from Model import DecoderRNN
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_path = "dataset/SingleExpression/COMA/Partial"
-    test_path = "dataset/SingleExpression/COMA/sus"
+    test_path = "dataset/SingleExpression/COMA/Testing"
     save_path = "Models/"
 
     dataset_train = SingleEmotionDataset(train_path)
-    dataset_test = SingleEmotionDataset(test_path)
     training_dataloader = DataLoader(dataset_train, batch_size=1, shuffle=True)
+    dataset_test = SingleEmotionDataset(test_path)
     testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=True)
 
     hidden_size = 512
@@ -29,7 +29,7 @@ def main():
     epochs = 10
     for epoch in range(epochs):
         tot_loss = 0
-        for landmark_animation, label in tqdm(training_dataloader):
+        for landmark_animation, label, str_label in tqdm(training_dataloader):
             optimizer.zero_grad()
             landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
             landmark_animation = landmark_animation.squeeze(0)
@@ -40,10 +40,10 @@ def main():
             optimizer.step()
 
         print("Epoch: ", epoch, " - Training loss: ", tot_loss / len(training_dataloader))
-        tot_loss_test = 0
 
+        tot_loss_test = 0
         model.eval()
-        for landmark_animation, label in tqdm(testing_dataloader):
+        for landmark_animation, label, str_label in tqdm(testing_dataloader):
             landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
             landmark_animation = landmark_animation.squeeze(0)
             with torch.no_grad():

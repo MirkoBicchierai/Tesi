@@ -44,4 +44,4 @@ class SingleEmotionDataset(Dataset):
             animation = torch.Tensor([])
             landmark_animation = torch.Tensor([], )
 
-        return landmark_animations, self.dict_emotions[actual_label]
+        return landmark_animations, self.dict_emotions[actual_label], actual_label
