@@ -1,9 +1,7 @@
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-import torch.nn.functional as F
 from DataLoader import SingleEmotionDataset
-from Model import DecoderRNN
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -11,7 +9,6 @@ import numpy as np
 def plot_graph(vector, label):
     for i in range(vector.shape[0]):
         for j in range(vector.shape[1]):
-            xd = vector[i][j]
             x = np.array([])
             y = np.array([])
             z = np.array([])
@@ -26,6 +23,7 @@ def plot_graph(vector, label):
             ax.set_ylabel('Y')
             ax.set_zlabel('Z')
             ax.scatter(x, y, z)
+            ax.view_init(90, -90)
             plt.savefig("Grafici/" + 'faccia_' + str(i) + '_' + ''.join(label) + '_frame_' + str(j) + '.png')
             plt.close()
 
