@@ -16,7 +16,7 @@ class DecoderRNN(nn.Module):
         self.device = device
         self.length = length
 
-    def forward(self, inputs, labels):
+    def forward(self, inputs, labels, length):
         encoding = F.one_hot(labels, num_classes=self.num_classes)
         #encoding = encoding.repeat([inputs.shape[0], 1])
 
@@ -30,10 +30,10 @@ class DecoderRNN(nn.Module):
         # frame = frame.unsqueeze(1).repeat([1, 3, 1])  # lstm
 
         output = []
-        for _ in range(self.length):
+        for _ in range(length):
             h_t, c_t = self.lstm(frame, (h_t, c_t))
             output_ = self.fc(h_t)
             output.append(output_)
-        output = torch.stack(output, dim=1).reshape(inputs.shape[0], self.length, inputs.shape[1], inputs.shape[2])
+        output = torch.stack(output, dim=1).reshape(inputs.shape[0], length, inputs.shape[1], inputs.shape[2])
 
         return output
