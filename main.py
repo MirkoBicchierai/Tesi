@@ -8,13 +8,9 @@ from Model import DecoderRNN
 
 
 def main():
-    filelist = [f for f in os.listdir("Grafici/")]
-    for f in filelist:
-        os.remove(os.path.join("Grafici/", f))
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    train_path = "Landmark_dataset"  # "dataset/SingleExpression/COMA/Partial"
-    test_path = "Landmark_dataset_testing"  # "dataset/SingleExpression/COMA/Testing"
+    train_path = "Landmark_dataset/dataset_training/Partial"
+    test_path = "Landmark_dataset/dataset_testing/Partial"
     save_path = "Models/"
 
     dataset_train = FastDataset(train_path)

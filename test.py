@@ -55,7 +55,7 @@ def main():
         os.remove(os.path.join("Grafici/", f))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    test_path = "Landmark_dataset_testing"
+    test_path = "Landmark_dataset/dataset_testing/Partial"
     save_path = "Models/model.pt"
 
     dataset_test = FastDataset(test_path)

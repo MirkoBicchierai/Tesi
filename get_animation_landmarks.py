@@ -1,54 +1,76 @@
 import os
+import shutil
 import numpy as np
 import torch
+from tqdm import tqdm
 from get_landmarks import get_landmarks
 import pytorch3d.io
-from torch.utils.data import Dataset
-
-train_path = "dataset/SingleExpression/COMA/Partial"
-test_path = "dataset/SingleExpression/COMA/Testing"
+import rarfile
 
 
-class SingleEmotionDataset(Dataset):
-    def __init__(self, folder_path):
-        self.folders = []
-        for f in os.listdir(folder_path):
-            real_f = os.path.join(folder_path, f)
-            self.folders = np.append(self.folders, [os.path.join(real_f, sf) for sf in os.listdir(real_f)])
-        self.labels = []
-        self.typeface = sum(1 for item in os.listdir(folder_path) if os.path.isdir(os.path.join(folder_path, item)))
-        for f in os.listdir(folder_path):
-            real_f = os.path.join(folder_path, f)
-            self.labels = np.append(self.labels, [sf for sf in os.listdir(real_f)])
-            break
-        self.dict_emotions = {label: idx for idx, label in enumerate(self.labels)}
+def unzip_all_files(folder_path, destination):
+    files = os.listdir(folder_path)
+    for file in files:
+        file_path = os.path.join(folder_path, file)
+        if file.endswith('.rar'):
+            with rarfile.RarFile(file_path, 'r') as rar_ref:
+                rar_ref.extractall(destination)
 
-    def __len__(self):
-        return len(self.labels)
 
-    def __getitem__(self, idx):
-        actual_label = self.labels[idx]
-        actual_folders = [s for s in self.folders if actual_label in s]
-        animation = torch.Tensor([])
+def unzip():
+    path_zip = "dataset/SingleExpression/COMA/Complete_Zip"
+    path_unzip = "dataset/SingleExpression/COMA/Complete_unZip"
+    filelist = [f for f in os.listdir(path_unzip)]
+    for f in filelist:
+        shutil.rmtree(os.path.join(path_unzip, f), ignore_errors=False, onerror=None)
+
+    for f in tqdm(os.listdir(path_zip)):
+        os.mkdir(os.path.join(path_unzip, f))
+        unzip_all_files(os.path.join(path_zip, f), os.path.join(path_unzip, f))
+
+
+def get_folder(path):
+    folders = []
+    for f in os.listdir(path):
+        real_f = os.path.join(path, f)
+        folders = np.append(folders, [os.path.join(real_f, sf) for sf in os.listdir(real_f)])
+    return folders
+
+
+def save_array(path, save):
+    folders = get_folder(path)
+    for f in tqdm(folders):
+        actual_label = os.path.basename(os.path.normpath(f))
+        actual_face = (f.split(os.sep)[-2]).split("_")[-1]
         landmark_animation = torch.Tensor([])
         landmark_animations = torch.Tensor([])
-        animations = torch.Tensor([])
-        for f in actual_folders:
-            file_list = sorted([f.decode('utf-8') for f in os.listdir(f)])
-            for file_name in file_list:
-                if file_name[-3:] == 'obj':
-                    frame, _, _ = pytorch3d.io.load_obj(os.path.join(f, file_name), load_textures=False)
-                    landmark = torch.tensor(get_landmarks(frame, "template/template/template.obj"))
-                    landmark_animation = torch.cat([landmark_animation, landmark.unsqueeze(0)])
-                    animation = torch.cat([animation, frame.unsqueeze(0)])
+        file_list = sorted([f.decode('utf-8') for f in os.listdir(f)])
+        for file_name in file_list:
+            if file_name[-3:] == 'obj':
+                frame, _, _ = pytorch3d.io.load_obj(os.path.join(f, file_name), load_textures=False)
+                landmark = torch.tensor(get_landmarks(frame, "template/template/template.obj"))
+                landmark_animation = torch.cat([landmark_animation, landmark.unsqueeze(0)])
+        landmark_animations = torch.cat([landmark_animations, landmark_animation.unsqueeze(0)])
 
-            animations = torch.cat([animations, animation.unsqueeze(0)])
-            landmark_animations = torch.cat([landmark_animations, landmark_animation.unsqueeze(0)])
-            animation = torch.Tensor([])
-            landmark_animation = torch.Tensor([])
+        for j, land_anim in enumerate(landmark_animations):
+            file = save + "/" + "".join(actual_label) + "_" + actual_face + ".npy"
+            np.save(file, land_anim.cpu().numpy())
 
-        for i, land_anim in enumerate(landmark_animations):
-            save = "Landmark_dataset_testing/" + "".join(actual_label) + "_" + str(i + 1) + ".npy"
-            np.save(save, land_anim.cpu().numpy())
 
-        return landmark_animations, self.dict_emotions[actual_label], actual_label
+def main(z):
+    if z:
+        unzip()
+
+    filelist = [f for f in os.listdir("Landmark_dataset/dataset_training/Complete/")]
+    for f in filelist:
+        os.remove(os.path.join("Landmark_dataset/dataset_training/Complete/", f))
+    save_array("dataset/SingleExpression/COMA/Complete_Train", "Landmark_dataset/dataset_training/Complete")
+
+    filelist = [f for f in os.listdir("Landmark_dataset/dataset_testing/Complete/")]
+    for f in filelist:
+        os.remove(os.path.join("Landmark_dataset/dataset_testing/Complete/", f))
+    save_array("dataset/SingleExpression/COMA/Complete_Test", "Landmark_dataset/dataset_testing/Complete")
+
+
+if __name__ == "__main__":
+    main(z=False)
