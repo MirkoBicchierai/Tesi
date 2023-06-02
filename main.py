@@ -3,35 +3,8 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import torch.nn.functional as F
-from DataLoader import SingleEmotionDataset, FastDataset
+from DataLoader import FastDataset
 from Model import DecoderRNN
-import matplotlib.pyplot as plt
-import numpy as np
-
-
-def plot_graph(vector, label, epoch):
-    for i in range(vector.shape[0]):
-        for j in range(vector.shape[1]):
-            x = np.array([])
-            y = np.array([])
-            z = np.array([])
-            for point in vector[i][j]:
-                x = np.append(x, point[0])
-                y = np.append(y, point[1])
-                z = np.append(z, point[2])
-
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            ax.set_xlabel('X')
-            ax.set_ylabel('Y')
-            ax.set_zlabel('Z')
-            ax.scatter(x, y, z)
-            ax.view_init(90, -90)
-
-            plt.savefig(
-                "Grafici/" + 'epoch_' + str(epoch) + '_faccia_' + str(i) + '_' + ''.join(label) + '_frame_' + str(
-                    j) + '.png')
-            plt.close()
 
 
 def main():
@@ -58,7 +31,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
 
     epochs = 500
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs)):
         tot_loss = 0
         for landmark_animation, label, str_label in training_dataloader:
             for idF, frame in enumerate(landmark_animation[:, 1:]):
@@ -76,14 +49,10 @@ def main():
         if not (epoch + 1) % 50:
             tot_loss_test = 0
             model.eval()
-            check = True
             for landmark_animation, label, str_label in testing_dataloader:
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
                 with torch.no_grad():
                     output = model(landmark_animation[:, 0], label, 60)
-                if check:
-                    plot_graph(output.cpu().numpy(), str_label, epoch + 1)
-                    check = False
                 test_loss = F.mse_loss(output, landmark_animation[:, 1:])
                 tot_loss_test += test_loss.item()
 
