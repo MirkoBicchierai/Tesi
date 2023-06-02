@@ -9,8 +9,8 @@ from Model import DecoderRNN
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    train_path = "Landmark_dataset/dataset_training/Partial"
-    test_path = "Landmark_dataset/dataset_testing/Partial"
+    train_path = "Landmark_dataset/dataset_training/Complete"  # Partial
+    test_path = "Landmark_dataset/dataset_testing/Complete"  # Partial
     save_path = "Models/"
 
     dataset_train = FastDataset(train_path)
@@ -33,7 +33,7 @@ def main():
             for idF, frame in enumerate(landmark_animation[:, 1:]):
                 optimizer.zero_grad()
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
-                output = model(landmark_animation[:, idF], label, 60-idF)
+                output = model(landmark_animation[:, idF], label, 60 - idF)
                 loss = F.mse_loss(output, landmark_animation[:, 1 + idF:])
                 tot_loss += loss.item()
                 loss.backward()
@@ -55,7 +55,7 @@ def main():
             print("Epoch: ", epoch + 1, " - Testing loss: ", tot_loss_test / len(testing_dataloader))
             model.train()
 
-    torch.save(model, os.path.join(save_path, "model.pt"))
+    torch.save(model, os.path.join(save_path, "modelComplete.pt"))
 
 
 if __name__ == "__main__":

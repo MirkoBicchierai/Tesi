@@ -56,7 +56,7 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     test_path = "Landmark_dataset/dataset_testing/Partial"
-    save_path = "Models/model.pt"
+    save_path = "Models/modelPartial.pt"
 
     dataset_test = FastDataset(test_path)
     testing_dataloader = DataLoader(dataset_test, batch_size=10, shuffle=True, drop_last=False)
