@@ -1,3 +1,4 @@
+import shutil
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -14,11 +15,12 @@ def plot_graph(vector, label, epoch):
     for i in range(vector.shape[0]):
         if label[i] not in label_faces_check:
             label_faces_check[label[i]] = 1
+            actual_face = 1
         else:
             label_faces_check[label[i]] = label_faces_check[label[i]] + 1
+            actual_face = label_faces_check[label[i]]
 
         png_files = []
-
         for j in range(vector.shape[1]):
             x = np.array([])
             y = np.array([])
@@ -36,14 +38,23 @@ def plot_graph(vector, label, epoch):
             ax.scatter(x, y, z)
             ax.view_init(90, -90)
             if epoch == -1:
-                p_save = "Graph/" + label[i] + '_frame_' + str(j) + '.png'
+                fol = "GraphTest/" + 'face_' + str(actual_face) + "_" + label[i]
+                if not os.path.exists(fol):
+                    os.makedirs(fol)
+                p_save = fol + '/frame_' + str(j) + '.png'
+
+                fol_np = 'GraphTest/' + 'face_' + str(actual_face) + "_" + label[i] + '/np'
+                if not os.path.exists(fol_np):
+                    os.makedirs(fol_np)
+                file_np = fol_np + '/frame_' + str(j) + ".npy"
+                np.save(file_np, vector[i][j])
             else:
-                p_save = "Graph/" + 'epoch_' + str(epoch + 1) + '_' + label[i] + '_frame_' + str(j) + '.png'
+                p_save = "GraphTrain/" + 'epoch_' + str(epoch + 1) + '_' + label[i] + '_frame_' + str(j) + '.png'
 
             png_files.append(p_save)
-            plt.xlim(-0.2, 0.2)
-            plt.ylim(-0.2, 0.2)
-            plt.savefig(p_save)
+            plt.xlim(-0.18, 0.18)
+            plt.ylim(-0.18, 0.18)
+            plt.savefig(p_save, dpi=300)
             plt.close()
 
         frames = []
@@ -51,23 +62,22 @@ def plot_graph(vector, label, epoch):
             frame = Image.open(png_file)
             frames.append(frame)
         if epoch == -1:
-            gif_filename = 'Graph/' + label[i] + '.gif'
+            gif_filename = 'GraphTest/' + 'face_' + str(actual_face) + "_" + label[i] + '/animation.gif'
         else:
-            gif_filename = 'Graph/epoch' + str(epoch + 1) + "_" + label[i] + '.gif'
-        frames[0].save(gif_filename, format="GIF", append_images=frames[1:], save_all=True, duration=120, loop=0)
+            gif_filename = 'GraphTrain/epoch' + str(epoch + 1) + "_" + label[i] + '.gif'
+        frames[0].save(gif_filename, format="GIF", append_images=frames[1:], save_all=True, duration=60, loop=0)
 
 
 def main():
-    filelist = [f for f in os.listdir("Graph/")]
-    for f in filelist:
-        os.remove(os.path.join("Graph/", f))
+    shutil.rmtree("GraphTest/", ignore_errors=False, onerror=None)
+    os.makedirs("GraphTest/")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    test_path = "Landmark_dataset/dataset_testing/Partial"
-    save_path = "Models/modelPartial.pt"  # modelComplete.pt
+    test_path = "Landmark_dataset/dataset_testing/Partial2"  # Partial - Partial2 - Complete
+    save_path = "Models/modelPartial2.pt"  # modelPartial.pt - modelPartial2.pt - modelComplete.pt
 
     dataset_test = FastDataset(test_path)
-    testing_dataloader = DataLoader(dataset_test, batch_size=10, shuffle=True, drop_last=False)
+    testing_dataloader = DataLoader(dataset_test, batch_size=5, shuffle=True, drop_last=False)
 
     model = torch.load(save_path)
     model.eval()

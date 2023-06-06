@@ -17,7 +17,6 @@ class DecoderRNN(nn.Module):
 
     def forward(self, inputs, labels, length):
         encoding = F.one_hot(labels, num_classes=self.num_classes)
-
         frame = inputs.flatten(-2)
         h_t = self.fc_inh(frame)
         c_t = self.fc_inc(frame)
