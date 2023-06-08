@@ -1,6 +1,7 @@
 import os
 import shutil
 from datetime import datetime
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -9,6 +10,12 @@ from DataLoader import FastDataset
 from Model import DecoderRNN
 from test import plot_graph
 from torch.utils.tensorboard import SummaryWriter
+import random
+
+seed_value = 27
+torch.manual_seed(seed_value)
+random.seed(seed_value)
+np.random.seed(seed_value)
 
 
 def main():
@@ -29,7 +36,7 @@ def main():
     os.makedirs("GraphTrain/")
 
     dataset_train = FastDataset(train_path)
-    training_dataloader = DataLoader(dataset_train, batch_size=20, shuffle=True, drop_last=False, pin_memory=True,
+    training_dataloader = DataLoader(dataset_train, batch_size=25, shuffle=True, drop_last=False, pin_memory=True,
                                      num_workers=5)
     dataset_test = FastDataset(test_path)
     testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=False, drop_last=False)
@@ -37,7 +44,7 @@ def main():
     model = DecoderRNN(hidden_size, output_size, num_classes, frame_generate, device).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-    epochs = 500
+    epochs = 1000
     for epoch in tqdm(range(epochs)):
         tot_loss = 0
         for landmark_animation, label, str_label in training_dataloader:
@@ -46,6 +53,7 @@ def main():
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
                 output = model(landmark_animation[:, idF], label, 60 - idF)
                 loss = F.mse_loss(output, landmark_animation[:, 1 + idF:])
+                # loss = F.l1_loss(output, landmark_animation[:, 1 + idF:])
                 tot_loss += loss.item()
                 loss.backward()
                 optimizer.step()
@@ -67,6 +75,7 @@ def main():
                         plot_graph(output.cpu().numpy(), str_label, epoch)
                     check = False
                 test_loss = F.mse_loss(output, landmark_animation[:, 1:])
+                #  test_loss = F.l1_loss(output, landmark_animation[:, 1:])
                 tot_loss_test += test_loss.item()
 
             writer.add_scalar('Loss/validation', tot_loss_test / len(testing_dataloader), epoch + 1)
