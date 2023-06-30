@@ -20,9 +20,9 @@ np.random.seed(seed_value)
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    train_path = "Landmark_dataset/dataset_training/Partial2"  # Partial - Partial2 - Complete
-    test_path = "Landmark_dataset/dataset_testing/Partial2"  # Partial - Partial2 - Complete
-    save_path = "Models/modelPartial2.pt"  # modelPartial.pt - modelPartial2.pt - modelComplete.pt
+    train_path = "Landmark_dataset_flame/dataset_training/Partial"
+    test_path = "Landmark_dataset_flame/dataset_testing/Partial"
+    save_path = "Models/modelPartial.pt"
 
     hidden_size = 256  # 1024
     num_classes = 10  # number of label (Partial 10 Complete 70)
@@ -30,7 +30,7 @@ def main():
     frame_generate = 60  # number of frame generate by lstm
 
     writer = SummaryWriter("TensorBoard/LABEL:" + str(num_classes) + "_HIDDEN-SIZE:" + str(
-        hidden_size) + "_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
+        hidden_size) + "_FLAME_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
 
     shutil.rmtree("GraphTrain/", ignore_errors=False, onerror=None)
     os.makedirs("GraphTrain/")
@@ -44,10 +44,10 @@ def main():
     model = DecoderRNN(hidden_size, output_size, num_classes, frame_generate, device).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
-    epochs = 1000
+    epochs = 500
     for epoch in tqdm(range(epochs)):
         tot_loss = 0
-        for landmark_animation, label, str_label in training_dataloader:
+        for landmark_animation, label, path_gen in training_dataloader:
             for idF in reversed(range(landmark_animation[:, 1:].shape[1])):
                 optimizer.zero_grad()
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
@@ -67,12 +67,12 @@ def main():
             tot_loss_test = 0
             model.eval()
             check = True
-            for landmark_animation, label, str_label in testing_dataloader:
+            for landmark_animation, label, path_gen in testing_dataloader:
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
                 with torch.no_grad():
                     output = model(landmark_animation[:, 0], label, 60)
                     if check:
-                        plot_graph(output.cpu().numpy(), str_label, epoch)
+                        plot_graph(output.cpu().numpy(), path_gen, epoch)
                     check = False
                 test_loss = F.mse_loss(output, landmark_animation[:, 1:])
                 #  test_loss = F.l1_loss(output, landmark_animation[:, 1:])

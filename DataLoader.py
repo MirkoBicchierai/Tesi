@@ -24,5 +24,6 @@ class FastDataset(Dataset):
         animation = np.load(self.file_list[idx], allow_pickle=True)
         label = os.path.basename(self.file_list[idx])
         label = label[:label.find("_")]
-        return torch.Tensor(animation), self.dict_emotions[label], label
+        path = self.file_list[idx]
+        return torch.Tensor(animation), self.dict_emotions[label], path
 
