@@ -8,7 +8,9 @@ import numpy as np
 class FastDataset(Dataset):
     def __init__(self, folder_path):
         self.folder_path = folder_path
-        self.file_list = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if isfile(os.path.join(folder_path, f))]
+        self.file_list = [os.path.join(folder_path, f) for f in sorted(os.listdir(folder_path)) if
+                          isfile(os.path.join(folder_path, f))]
+
         labels = []
         for f in self.file_list:
             label = os.path.basename(f)
@@ -26,4 +28,3 @@ class FastDataset(Dataset):
         label = label[:label.find("_")]
         path = self.file_list[idx]
         return torch.Tensor(animation), self.dict_emotions[label], path
-

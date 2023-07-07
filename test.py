@@ -10,6 +10,7 @@ import os
 
 label_faces_check = []
 
+
 def plot_graph(vector, label, epoch):
     for i in range(vector.shape[0]):
         tmp = os.path.basename(label[i])
@@ -44,8 +45,8 @@ def plot_graph(vector, label, epoch):
                     j) + '.png'
 
             png_files.append(p_save)
-            plt.xlim(-0.125, 0.125)
-            plt.ylim(-0.125, 0.125)
+            plt.xlim(-0.115, 0.115)
+            plt.ylim(-0.115, 0.115)
             plt.savefig(p_save, dpi=300)
             plt.close()
 
@@ -61,10 +62,11 @@ def plot_graph(vector, label, epoch):
             frame = Image.open(png_file)
             frames.append(frame)
         if epoch == -1:
-            gif_filename = 'GraphTest/' + face + "_" + label_ptr + '/animation.gif'
+            gif_filename = 'GraphTest/' + face + "_" + label_ptr + '/' + face + "_" + label_ptr + '.gif'
         else:
             gif_filename = 'GraphTrain/epoch' + str(epoch + 1) + "_" + label_ptr + '.gif'
         frames[0].save(gif_filename, format="GIF", append_images=frames[1:], save_all=True, duration=60, loop=0)
+        for file in png_files: os.remove(file)
 
 
 def main():
@@ -73,10 +75,10 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     test_path = "Landmark_dataset_flame/dataset_testing/Partial"
-    save_path = "Models/modelPartial.pt"
+    save_path = "Models/modelPartial5000.pt"
 
     dataset_test = FastDataset(test_path)
-    testing_dataloader = DataLoader(dataset_test, batch_size=5, shuffle=True, drop_last=False)
+    testing_dataloader = DataLoader(dataset_test, batch_size=5, shuffle=False, drop_last=False)
 
     model = torch.load(save_path)
     model.eval()

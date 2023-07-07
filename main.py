@@ -22,15 +22,16 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_path = "Landmark_dataset_flame/dataset_training/Partial"
     test_path = "Landmark_dataset_flame/dataset_testing/Partial"
-    save_path = "Models/modelPartial.pt"
+    save_path = "Models/modelPartial5000_partial1.pt"
 
-    hidden_size = 256  # 1024
+    hidden_size = 512  # 1024
     num_classes = 10  # number of label (Partial 10 Complete 70)
     output_size = (68 * 3)  # landmark point * coordinates
     frame_generate = 60  # number of frame generate by lstm
+    lr = 1e-4  # learning rate
 
     writer = SummaryWriter("TensorBoard/LABEL:" + str(num_classes) + "_HIDDEN-SIZE:" + str(
-        hidden_size) + "_FLAME_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
+        hidden_size) + "_LR:" + str(lr) + "_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
 
     shutil.rmtree("GraphTrain/", ignore_errors=False, onerror=None)
     os.makedirs("GraphTrain/")
@@ -42,9 +43,9 @@ def main():
     testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=False, drop_last=False)
 
     model = DecoderRNN(hidden_size, output_size, num_classes, frame_generate, device).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    epochs = 500
+    epochs = 5000
     for epoch in tqdm(range(epochs)):
         tot_loss = 0
         for landmark_animation, label, path_gen in training_dataloader:
@@ -73,9 +74,9 @@ def main():
                     output = model(landmark_animation[:, 0], label, 60)
                     if check:
                         plot_graph(output.cpu().numpy(), path_gen, epoch)
-                    check = False
+                    # check = False
                 test_loss = F.mse_loss(output, landmark_animation[:, 1:])
-                #  test_loss = F.l1_loss(output, landmark_animation[:, 1:])
+                # test_loss = F.l1_loss(output, landmark_animation[:, 1:])
                 tot_loss_test += test_loss.item()
 
             writer.add_scalar('Loss/validation', tot_loss_test / len(testing_dataloader), epoch + 1)
