@@ -10,13 +10,14 @@ class FastDataset(Dataset):
         self.folder_path = folder_path
         self.file_list = [os.path.join(folder_path, f) for f in sorted(os.listdir(folder_path)) if
                           isfile(os.path.join(folder_path, f))]
-
         labels = []
         for f in self.file_list:
             label = os.path.basename(f)
             label = label[:label.find("_")]
             if label not in labels: labels.append(label)
         self.dict_emotions = {label: idx for idx, label in enumerate(labels)}
+        # self.dict_emotions = {'Cheeky': 0, 'Fear': 1, 'Disgust': 2, 'Excitement': 3, 'Bored': 4, 'Afraid': 5,
+        # 'Displeased': 6, 'Concentrate': 7, 'Happy': 8, 'Flirting': 9}
         self.num_classes = len(labels)
 
     def __len__(self):

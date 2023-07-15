@@ -4,9 +4,9 @@ from torch.utils.data import DataLoader
 from DataLoader import FastDataset
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-train_path = "Landmark_dataset_flame/dataset_training/Partial"
-test_path = "Landmark_dataset_flame/dataset_testing/Partial"
-save_path = "Models/modelPartial50002.pt"
+train_path = "Landmark_dataset_flame/dataset_training/Partial2"
+test_path = "Landmark_dataset_flame/dataset_testing/Partial2"
+save_path = "Models/modelPartial5000_partial2.pt"
 
 
 dataset_train = FastDataset(train_path)

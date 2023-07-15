@@ -11,7 +11,7 @@ import os
 label_faces_check = []
 
 
-def plot_graph(vector, label, epoch):
+def plot_graph(vector, label, epoch, aligned):
     for i in range(vector.shape[0]):
         tmp = os.path.basename(label[i])
         label_ptr = tmp[:tmp.find("_")]
@@ -45,8 +45,20 @@ def plot_graph(vector, label, epoch):
                     j) + '.png'
 
             png_files.append(p_save)
-            plt.xlim(-0.115, 0.115)
-            plt.ylim(-0.115, 0.115)
+
+            if aligned:
+                plt.xlim(-0.10, 0.10)
+                plt.ylim(-0.115, 0.08)
+                step = 0.04
+                n_elements = int((0.10 - (-0.10)) / step) + 1
+                plt.xticks(np.round(np.linspace(-0.10, 0.10, n_elements), 2))
+                step = 0.04
+                n_elements = int((0.08 - (-0.115)) / step) + 1
+                plt.yticks(np.round(np.linspace(-0.115, 0.08, n_elements), 2))
+                # ax.set_zticks([])
+            else:
+                plt.xlim(-0.115, 0.115)
+                plt.ylim(-0.115, 0.115)
             plt.savefig(p_save, dpi=300)
             plt.close()
 
@@ -74,8 +86,10 @@ def main():
     os.makedirs("GraphTest/")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    test_path = "Landmark_dataset_flame/dataset_testing/Partial"
-    save_path = "Models/modelPartial5000.pt"
+    test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
+    save_path = "Models/modelPartial5000_partial2_aligned.pt"
+
+    aligned = True
 
     dataset_test = FastDataset(test_path)
     testing_dataloader = DataLoader(dataset_test, batch_size=5, shuffle=False, drop_last=False)
@@ -86,7 +100,7 @@ def main():
         landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
         with torch.no_grad():
             output = model(landmark_animation[:, 0], label, 60)
-            plot_graph(output.cpu().numpy(), path_gen, epoch=-1)
+            plot_graph(output.cpu().numpy(), path_gen, -1, aligned)
 
     print(label_faces_check)
 

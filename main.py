@@ -20,9 +20,10 @@ np.random.seed(seed_value)
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    train_path = "Landmark_dataset_flame/dataset_training/Partial"
-    test_path = "Landmark_dataset_flame/dataset_testing/Partial"
-    save_path = "Models/modelPartial5000_partial1.pt"
+    train_path = "Landmark_dataset_flame_aligned/dataset_training/Partial2"
+    test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
+    save_path = "Models/modelPartial5000_partial2_aligned.pt"
+    aligned = True
 
     hidden_size = 512  # 1024
     num_classes = 10  # number of label (Partial 10 Complete 70)
@@ -31,7 +32,7 @@ def main():
     lr = 1e-4  # learning rate
 
     writer = SummaryWriter("TensorBoard/LABEL:" + str(num_classes) + "_HIDDEN-SIZE:" + str(
-        hidden_size) + "_LR:" + str(lr) + "_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
+        hidden_size) + "_LR:" + str(lr) + "_ALIGNED_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
 
     shutil.rmtree("GraphTrain/", ignore_errors=False, onerror=None)
     os.makedirs("GraphTrain/")
@@ -45,7 +46,7 @@ def main():
     model = DecoderRNN(hidden_size, output_size, num_classes, frame_generate, device).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    epochs = 5000
+    epochs = 7500
     for epoch in tqdm(range(epochs)):
         tot_loss = 0
         for landmark_animation, label, path_gen in training_dataloader:
@@ -73,8 +74,8 @@ def main():
                 with torch.no_grad():
                     output = model(landmark_animation[:, 0], label, 60)
                     if check:
-                        plot_graph(output.cpu().numpy(), path_gen, epoch)
-                    # check = False
+                        plot_graph(output.cpu().numpy(), path_gen, epoch, aligned)
+                    check = False
                 test_loss = F.mse_loss(output, landmark_animation[:, 1:])
                 # test_loss = F.l1_loss(output, landmark_animation[:, 1:])
                 tot_loss_test += test_loss.item()
