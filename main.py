@@ -22,10 +22,10 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_path = "Landmark_dataset_flame_aligned/dataset_training/Partial2"
     test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
-    save_path = "Models/modelPartial5000_partial2_aligned.pt"
+    save_path = "Models/modelPartial12500_partial2_aligned.pt"
     aligned = True
 
-    hidden_size = 512  # 1024
+    hidden_size = 1024  # 1024
     num_classes = 10  # number of label (Partial 10 Complete 70)
     output_size = (68 * 3)  # landmark point * coordinates
     frame_generate = 60  # number of frame generate by lstm
@@ -46,7 +46,7 @@ def main():
     model = DecoderRNN(hidden_size, output_size, num_classes, frame_generate, device).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    epochs = 7500
+    epochs = 12500
     for epoch in tqdm(range(epochs)):
         tot_loss = 0
         for landmark_animation, label, path_gen in training_dataloader:
