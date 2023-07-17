@@ -22,7 +22,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_path = "Landmark_dataset_flame_aligned/dataset_training/Partial2"
     test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
-    save_path = "Models/modelPartial12500_partial2_aligned.pt"
+    save_path = "Models/modelPartial15000_partial2_aligned.pt"
     aligned = True
 
     hidden_size = 1024  # 1024
@@ -46,7 +46,7 @@ def main():
     model = DecoderRNN(hidden_size, output_size, num_classes, frame_generate, device).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    epochs = 12500
+    epochs = 15000
     for epoch in tqdm(range(epochs)):
         tot_loss = 0
         for landmark_animation, label, path_gen in training_dataloader:
