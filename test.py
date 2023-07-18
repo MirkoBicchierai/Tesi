@@ -41,7 +41,7 @@ def plot_graph(vector, label, epoch, aligned):
                     os.makedirs(fol)
                 p_save = fol + '/frame_' + str(j) + '.png'
             else:
-                p_save = "GraphTrain/" + 'epoch_' + str(epoch + 1) + '_' + label_ptr + '_frame_' + str(
+                p_save = 'GraphTrain/epoch_' + str(epoch + 1) + '_' + label_ptr + '_frame_' + str(
                     j) + '.png'
 
             png_files.append(p_save)
@@ -87,7 +87,7 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
-    save_path = "Models/modelPartial5000_partial2_aligned.pt"
+    save_path = "Models/model_7500_l2_e4.pt"
 
     aligned = True
 

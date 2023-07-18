@@ -22,14 +22,14 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_path = "Landmark_dataset_flame_aligned/dataset_training/Partial2"
     test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
-    save_path = "Models/modelPartial15000_partial2_aligned.pt"
+    save_path = "Models/modelPartial15000_partial2_aligned1.pt"
     aligned = True
 
-    hidden_size = 1024  # 1024
+    hidden_size = 512  # 1024
     num_classes = 10  # number of label (Partial 10 Complete 70)
     output_size = (68 * 3)  # landmark point * coordinates
     frame_generate = 60  # number of frame generate by lstm
-    lr = 1e-4  # learning rate
+    lr = 1e-6  # learning rate
 
     writer = SummaryWriter("TensorBoard/LABEL:" + str(num_classes) + "_HIDDEN-SIZE:" + str(
         hidden_size) + "_LR:" + str(lr) + "_ALIGNED_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
@@ -38,7 +38,7 @@ def main():
     os.makedirs("GraphTrain/")
 
     dataset_train = FastDataset(train_path)
-    training_dataloader = DataLoader(dataset_train, batch_size=25, shuffle=True, drop_last=False, pin_memory=True,
+    training_dataloader = DataLoader(dataset_train, batch_size=50, shuffle=True, drop_last=False, pin_memory=True,
                                      num_workers=5)
     dataset_test = FastDataset(test_path)
     testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=False, drop_last=False)
@@ -46,7 +46,7 @@ def main():
     model = DecoderRNN(hidden_size, output_size, num_classes, frame_generate, device).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
-    epochs = 15000
+    epochs = 7500
     for epoch in tqdm(range(epochs)):
         tot_loss = 0
         for landmark_animation, label, path_gen in training_dataloader:
@@ -55,7 +55,6 @@ def main():
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
                 output = model(landmark_animation[:, idF], label, 60 - idF)
                 loss = F.mse_loss(output, landmark_animation[:, 1 + idF:])
-                # loss = F.l1_loss(output, landmark_animation[:, 1 + idF:])
                 tot_loss += loss.item()
                 loss.backward()
                 optimizer.step()
@@ -77,7 +76,6 @@ def main():
                         plot_graph(output.cpu().numpy(), path_gen, epoch, aligned)
                     check = False
                 test_loss = F.mse_loss(output, landmark_animation[:, 1:])
-                # test_loss = F.l1_loss(output, landmark_animation[:, 1:])
                 tot_loss_test += test_loss.item()
 
             writer.add_scalar('Loss/validation', tot_loss_test / len(testing_dataloader), epoch + 1)
