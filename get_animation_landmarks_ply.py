@@ -46,7 +46,6 @@ def plot_graph(vector, label_ptr, face, main_fold, aligned):
             step = 0.04
             n_elements = int((0.08 - (-0.115)) / step) + 1
             plt.yticks(np.round(np.linspace(-0.115, 0.08, n_elements), 2))
-            # ax.set_zticks([])
         else:
             plt.xlim(-0.115, 0.115)
             plt.ylim(-0.115, 0.115)
