@@ -12,6 +12,10 @@
       <excludeFolder url="file://$MODULE_DIR$/Generazioni" />
       <excludeFolder url="file://$MODULE_DIR$/Dataset_FLAME_Aligned" />
       <excludeFolder url="file://$MODULE_DIR$/Landmark_dataset_flame_aligned" />
+      <excludeFolder url="file://$MODULE_DIR$/Dataset_FLAME_Aligned_COMA" />
+      <excludeFolder url="file://$MODULE_DIR$/Landmark_dataset_flame_aligned_coma" />
+      <excludeFolder url="file://$MODULE_DIR$/test" />
+      <excludeFolder url="file://$MODULE_DIR$/test_landmark" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

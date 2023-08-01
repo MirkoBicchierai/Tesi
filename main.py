@@ -26,7 +26,7 @@ def main():
     save_path = "Models/model_1500_l2_e4_512_only-shift.pt"
     aligned = True
 
-    hidden_size = 512  # 1024
+    hidden_size = 1024  # 1024
     num_classes = 10  # number of label (Partial 10 Complete 70)
     output_size = (68 * 3)  # landmark point * coordinates
     frame_generate = 60  # number of frame generate by lstm

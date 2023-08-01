@@ -64,7 +64,6 @@ def plot_graph(vector, label_ptr, face, main_fold, aligned):
 
 
 def save_array(path, save, fold, do_graph, aligned):
-
     folders = get_folder(path)
     for f in tqdm(folders):
         actual_label = os.path.basename(os.path.normpath(f))
