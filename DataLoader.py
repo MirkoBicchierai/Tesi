@@ -6,8 +6,10 @@ import numpy as np
 
 
 class FastDataset(Dataset):
-    def __init__(self, folder_path, actors):
+    def __init__(self, folder_path, actors, name_actors):
         self.actors = actors
+        self.name_actors = name_actors
+        print(self.name_actors)
         self.folder_path = folder_path
         self.file_list = [os.path.join(folder_path, f) for f in sorted(os.listdir(folder_path)) if
                           isfile(os.path.join(folder_path, f))]
@@ -25,10 +27,16 @@ class FastDataset(Dataset):
     def __getitem__(self, idx):
         animation = np.load(self.file_list[idx], allow_pickle=True)
         label = os.path.basename(self.file_list[idx])
+
         face = label[label.find("_") + 1:label.find(".")]
         label = label[:label.find("_")]
+
+        if "FaceTalk" in face:
+            face = face[face.index("FaceTalk"):]
+
         path = self.file_list[idx]
-        template = self.actors[int(face[2:]) - 1]
+        id_template = self.name_actors.index(face)
+        template = self.actors[id_template]
         for i in range(animation.shape[0]):
             animation[i] = animation[i] - template
         return torch.Tensor(animation), self.dict_emotions[label], path

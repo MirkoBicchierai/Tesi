@@ -19,17 +19,17 @@ np.random.seed(seed_value)
 
 
 def main():
-    actors_coma = import_actor(path="Actors/")
+    actors_coma, name_actors_coma = import_actor(path="Actors_Coma/")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    train_path = "Landmark_dataset_flame_aligned/dataset_training/Partial2"
-    test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
-    save_path = "Models/model_1500_l2_e4_512_only-shift.pt"
+    train_path = "Landmark_dataset_flame_aligned_coma/dataset_training" #   Landmark_dataset_flame_aligned/dataset_training/Partial2
+    test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing" #   Landmark_dataset_flame_aligned/dataset_testing/Partial2
+    save_path = "Models/model_1500_l2_e4_512_only-shift_COMA.pt"
     aligned = True
 
     hidden_size = 1024  # 1024
     num_classes = 10  # number of label (Partial 10 Complete 70)
     output_size = (68 * 3)  # landmark point * coordinates
-    frame_generate = 60  # number of frame generate by lstm
+    frame_generate = 30  # number of frame generate by lstm
     lr = 1e-4  # learning rate
 
     writer = SummaryWriter("TensorBoard/LABEL:" + str(num_classes) + "_HIDDEN-SIZE:" + str(
@@ -38,10 +38,10 @@ def main():
     shutil.rmtree("GraphTrain/", ignore_errors=False, onerror=None)
     os.makedirs("GraphTrain/")
 
-    dataset_train = FastDataset(train_path, actors_coma)
+    dataset_train = FastDataset(train_path, actors_coma, name_actors_coma)
     training_dataloader = DataLoader(dataset_train, batch_size=25, shuffle=True, drop_last=False, pin_memory=True,
                                      num_workers=5)
-    dataset_test = FastDataset(test_path, actors_coma)
+    dataset_test = FastDataset(test_path, actors_coma, name_actors_coma)
     testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=False, drop_last=False)
 
     model = DecoderRNN(hidden_size, output_size, num_classes, frame_generate, device).to(device)
@@ -60,7 +60,7 @@ def main():
                 loss.backward()
                 optimizer.step()
 
-            writer.add_scalar('Loss/train', tot_loss / len(training_dataloader), epoch + 1)
+        writer.add_scalar('Loss/train', tot_loss / len(training_dataloader), epoch + 1)
 
         if not (epoch + 1) % 10:
             print("Epoch: ", epoch + 1, " - Training loss: ", tot_loss / len(training_dataloader))
@@ -74,7 +74,7 @@ def main():
                 with torch.no_grad():
                     output = model(landmark_animation[:, 0], label, 60)
                     if check:
-                        plot_graph(build_face(output, path_gen, actors_coma), path_gen, epoch, aligned)
+                        plot_graph(build_face(output, path_gen, actors_coma, name_actors_coma), path_gen, epoch, aligned)
                     check = False
                 test_loss = F.mse_loss(output, landmark_animation[:, 1:])
                 tot_loss_test += test_loss.item()

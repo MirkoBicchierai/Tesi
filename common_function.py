@@ -8,25 +8,36 @@ from Get_landmarks import get_landmarks
 label_faces_check = []
 
 
-def build_face(output, path_gen, actors_coma):
+def build_face(output, path_gen, actors_coma, name_actors):
     output = output.cpu().numpy()
     for i in range(output.shape[0]):
         label = os.path.basename(path_gen[i])
         face = label[label.find("_") + 1:label.find(".")]
-        template = actors_coma[int(face[2:]) - 1]
+        # template = actors_coma[int(face[2:]) - 1]
+        id_template = name_actors.index(face)
+        template = actors_coma[id_template]
         for j in range(output.shape[1]):
             output[i][j] = output[i][j] + template
     return output
 
 
-def import_actor(path):
-    file_list = [path + e for e in sorted(os.listdir(path))]
-    actors = []
-    for file in file_list:
-        mesh = trimesh.load(file, process=False)
-        actors.append(get_landmarks(mesh.vertices))
-    return np.asarray(actors)
+# def import_actor(path):
+#     file_list = [path + e for e in sorted(os.listdir(path))]
+#     actors = []
+#     for file in file_list:
+#         mesh = trimesh.load(file, process=False)
+#         actors.append(get_landmarks(mesh.vertices))
+#     return np.asarray(actors)
 
+def import_actor(path):
+    file_list = [e for e in sorted(os.listdir(path))]
+    actors = []
+    actors_name = []
+    for file in file_list:
+        mesh = trimesh.load(path + file, process=False)
+        actors.append(get_landmarks(mesh.vertices))
+        actors_name.append(os.path.splitext(os.path.basename(file))[0])
+    return np.asarray(actors), actors_name
 
 def plot_graph(vector, label, epoch, aligned):
     for i in range(vector.shape[0]):
