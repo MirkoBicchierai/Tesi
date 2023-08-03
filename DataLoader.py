@@ -9,14 +9,16 @@ class FastDataset(Dataset):
     def __init__(self, folder_path, actors, name_actors):
         self.actors = actors
         self.name_actors = name_actors
-        print(self.name_actors)
         self.folder_path = folder_path
         self.file_list = [os.path.join(folder_path, f) for f in sorted(os.listdir(folder_path)) if
                           isfile(os.path.join(folder_path, f))]
         labels = []
         for f in self.file_list:
             label = os.path.basename(f)
-            label = label[:label.find("_")]
+            if "FaceTalk" in label:
+                label = label[:label.find("_FaceTalk")]
+            else:
+                label = label[:label.find("_")]
             if label not in labels: labels.append(label)
         self.dict_emotions = {label: idx for idx, label in enumerate(labels)}
         self.num_classes = len(labels)
@@ -26,13 +28,17 @@ class FastDataset(Dataset):
 
     def __getitem__(self, idx):
         animation = np.load(self.file_list[idx], allow_pickle=True)
+        tmp = os.path.basename(self.file_list[idx])
         label = os.path.basename(self.file_list[idx])
 
-        face = label[label.find("_") + 1:label.find(".")]
-        label = label[:label.find("_")]
-
-        if "FaceTalk" in face:
+        if "FaceTalk" in label:
+            face = label[label.find("_") + 1:label.find(".")]
+            label = label[:label.find("_FaceTalk")]
             face = face[face.index("FaceTalk"):]
+        else:
+            face = label[label.find("_") + 1:label.find(".")]
+            label = label[:label.find("_")]
+
 
         path = self.file_list[idx]
         id_template = self.name_actors.index(face)
