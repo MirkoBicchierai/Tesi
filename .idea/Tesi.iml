@@ -16,6 +16,8 @@
       <excludeFolder url="file://$MODULE_DIR$/Landmark_dataset_flame_aligned_coma" />
       <excludeFolder url="file://$MODULE_DIR$/test" />
       <excludeFolder url="file://$MODULE_DIR$/test_landmark" />
+      <excludeFolder url="file://$MODULE_DIR$/sampling" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

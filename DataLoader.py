@@ -28,7 +28,6 @@ class FastDataset(Dataset):
 
     def __getitem__(self, idx):
         animation = np.load(self.file_list[idx], allow_pickle=True)
-        tmp = os.path.basename(self.file_list[idx])
         label = os.path.basename(self.file_list[idx])
 
         if "FaceTalk" in label:
@@ -38,7 +37,6 @@ class FastDataset(Dataset):
         else:
             face = label[label.find("_") + 1:label.find(".")]
             label = label[:label.find("_")]
-
 
         path = self.file_list[idx]
         id_template = self.name_actors.index(face)

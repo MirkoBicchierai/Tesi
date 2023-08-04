@@ -55,7 +55,7 @@ def main():
     # Dataset_FLAME_Aligned_COMA/DATASET COMPLETO/FaceTalk_170811_03275_TA/mouth_extreme
     input_folder = "Dataset_FLAME_Aligned_COMA/DATASET COMPLETO/"
     output_folder = "sampling/"
-    tmp_out_ = "test/"
+    tmp_out_ = "tmp/"
     folders = os.listdir(input_folder)
 
     shutil.rmtree(output_folder, ignore_errors=False, onerror=None)
@@ -76,13 +76,13 @@ def main():
             os.makedirs(tmp_out)
             tmp_num_frame = len(os.listdir(tmp_in))
 
-            if tmp_num_frame < 30:
+            if tmp_num_frame < 41:
                 target_frames = tmp_num_frame
-                n = 3
+                n = 4
                 downsample_animation(tmp_in, tmp_out_, target_frames, n_interpolation=n)
                 tmp_in = tmp_out_
 
-            target_frames = 30
+            target_frames = 41
             n = 1
             downsample_animation(tmp_in, tmp_out, target_frames, n_interpolation=n)
 

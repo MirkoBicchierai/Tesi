@@ -1,11 +1,27 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 import trimesh
 from PIL import Image
 from Get_landmarks import get_landmarks
 
 label_faces_check = []
+
+
+def get_actor(landmark_animation, path_gen, actors_coma, name_actors):
+    landmarks = landmark_animation.cpu().numpy()
+    templates = []
+    for i in range(landmarks.shape[0]):
+        label = os.path.basename(path_gen[i])
+        face = label[label.find("_") + 1:label.find(".")]
+        # template = actors_coma[int(face[2:]) - 1]
+        if "FaceTalk" in face:
+            face = face[face.index("FaceTalk"):]
+        id_template = name_actors.index(face)
+        template = actors_coma[id_template]
+        templates.append(template)
+    return torch.Tensor(np.array(templates))
 
 
 def build_face(output, path_gen, actors_coma, name_actors):

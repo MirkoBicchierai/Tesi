@@ -4,12 +4,13 @@ import os
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from DataLoader import FastDataset
-from common_function import label_faces_check, plot_graph, import_actor, build_face
+from common_function import label_faces_check, plot_graph, import_actor, build_face, get_actor
 
 
 def main():
     shutil.rmtree("GraphTest/", ignore_errors=False, onerror=None)
     os.makedirs("GraphTest/")
+    frame_generate = 40
 
     actors_coma, name_actors_coma = import_actor(path="Actors_Coma/")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -25,7 +26,7 @@ def main():
     for landmark_animation, label, path_gen in tqdm(testing_dataloader):
         landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
         with torch.no_grad():
-            output = model(landmark_animation[:, 0], label, 29)
+            output = model(landmark_animation[:, 0], label, frame_generate) # , get_actor(landmark_animation, path_gen, actors_coma, name_actors_coma).to(device)
             plot_graph(build_face(output, path_gen, actors_coma, name_actors_coma), path_gen, -1, aligned)
 
     print(label_faces_check)

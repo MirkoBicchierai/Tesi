@@ -10,7 +10,7 @@ from tqdm import tqdm
 from DataLoader import FastDataset
 from Model import DecoderRNN
 from torch.utils.tensorboard import SummaryWriter
-from common_function import plot_graph, import_actor, build_face
+from common_function import plot_graph, import_actor, build_face, get_actor
 
 seed_value = 27
 torch.manual_seed(seed_value)
@@ -31,8 +31,8 @@ def main():
         hidden_size = 1024
         num_classes = 12
         output_size = (68 * 3)
-        frame_generate = 29
-        lr = 1e-3
+        frame_generate = 40
+        lr = 1e-4
         epochs = 1200
     else:
         train_path = "Landmark_dataset_flame_aligned/dataset_training/Partial2"
@@ -45,11 +45,11 @@ def main():
         lr = 1e-4
         epochs = 1200
 
-    save_path = "Models/model_" + str(epochs) + "_" + str(lr) + "_" + str(hidden_size) + "_COMA.pt"
+    save_path = "Models/model_" + str(epochs) + "_" + str(lr) + "_" + str(hidden_size) + "_COMA_40.pt"
 
     actors_coma, name_actors_coma = import_actor(path=actors_path)
     writer = SummaryWriter("TensorBoard/LABEL:" + str(num_classes) + "_HIDDEN-SIZE:" + str(
-        hidden_size) + "_LR:" + str(lr) + "_COMA_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
+        hidden_size) + "_LR:" + str(lr) + "_COMA_40_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
 
     shutil.rmtree("GraphTrain/", ignore_errors=False, onerror=None)
     os.makedirs("GraphTrain/")
@@ -69,7 +69,7 @@ def main():
             for idF in reversed(range(landmark_animation[:, 1:].shape[1])):
                 optimizer.zero_grad()
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
-                output = model(landmark_animation[:, idF], label, frame_generate - idF)
+                output = model(landmark_animation[:, idF], label, frame_generate - idF) # ,get_actor(landmark_animation, path_gen, actors_coma, name_actors_coma).to(device)
                 loss = F.mse_loss(output, landmark_animation[:, 1 + idF:])
                 tot_loss += loss.item()
                 loss.backward()
@@ -87,7 +87,7 @@ def main():
             for landmark_animation, label, path_gen in testing_dataloader:
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
                 with torch.no_grad():
-                    output = model(landmark_animation[:, 0], label, frame_generate)
+                    output = model(landmark_animation[:, 0], label, frame_generate) # , get_actor(landmark_animation, path_gen, actors_coma, name_actors_coma).to(device)
                     if check:
                         plot_graph(build_face(output, path_gen, actors_coma, name_actors_coma), path_gen, epoch,
                                    aligned)

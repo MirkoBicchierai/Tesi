@@ -1,10 +1,11 @@
 import shutil
 import trimesh
-from Get_landmarks import get_landmarks
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
 import os
+from Get_landmarks import get_landmarks
+from PIL import Image
+from tqdm import tqdm
 
 
 def plot_graph(vector, label_ptr, face, main_fold, aligned):
@@ -63,7 +64,7 @@ def main():
     shutil.rmtree("Landmark_dataset_flame_aligned_coma/Completo/", ignore_errors=False, onerror=None)
     os.makedirs("Landmark_dataset_flame_aligned_coma/Completo/")
 
-    for subdir in os.listdir(data_path):
+    for subdir in tqdm(os.listdir(data_path)):
         # os.makedirs("Landmark_dataset_flame_aligned_coma/Completo/" + subdir + "/")
         for expr_dir in os.listdir(os.path.join(data_path, subdir)):
 
@@ -74,10 +75,11 @@ def main():
                 landmarks.append(get_landmarks(data_loaded.vertices))
 
             landmarks = np.array(landmarks)
+            expr_dir = expr_dir.replace("_", "-")
             np.save(
                 'Landmark_dataset_flame_aligned_coma/Completo/' + expr_dir + "_" + subdir + ".npy",
                 landmarks)
-            # plot_graph(landmarks, expr_dir, subdir, folder_plot, aligned)
+            plot_graph(landmarks, expr_dir, subdir, folder_plot, aligned)
 
 
 if __name__ == '__main__':
