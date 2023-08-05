@@ -33,7 +33,7 @@ def main():
         output_size = (68 * 3)
         frame_generate = 40
         lr = 1e-4
-        epochs = 1200
+        epochs = 2500
     else:
         train_path = "Landmark_dataset_flame_aligned/dataset_training/Partial2"
         test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
@@ -45,7 +45,7 @@ def main():
         lr = 1e-4
         epochs = 1200
 
-    save_path = "Models/model_" + str(epochs) + "_" + str(lr) + "_" + str(hidden_size) + "_COMA_40.pt"
+    save_path = "Models/model_" + str(epochs) + "_" + str(lr) + "_" + str(hidden_size) + "_COMA.pt"
 
     actors_coma, name_actors_coma = import_actor(path=actors_path)
     writer = SummaryWriter("TensorBoard/LABEL:" + str(num_classes) + "_HIDDEN-SIZE:" + str(

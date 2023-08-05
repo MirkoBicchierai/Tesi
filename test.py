@@ -15,7 +15,7 @@ def main():
     actors_coma, name_actors_coma = import_actor(path="Actors_Coma/")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
-    save_path = "Models/model_1500_l2_e4_512_only-shift_COMA.pt"
+    save_path = "Models/model_1200_0.0001_1024_COMA_40.pt"
 
     aligned = True
     dataset_test = FastDataset(test_path, actors_coma, name_actors_coma)
