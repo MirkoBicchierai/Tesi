@@ -4,18 +4,27 @@ import os
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from DataLoader import FastDataset
-from common_function import label_faces_check, plot_graph, import_actor, build_face, get_actor
+from common_function import label_faces_check, plot_graph, import_actor, build_face
 
 
 def main():
     shutil.rmtree("GraphTest/", ignore_errors=False, onerror=None)
     os.makedirs("GraphTest/")
-    frame_generate = 40
+    coma = False
 
-    actors_coma, name_actors_coma = import_actor(path="Actors_Coma/")
+    if coma:
+        test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
+        actors_path = "Actors_Coma/"
+        save_path = "Models/model_1200_0.0001_2048_COMA.pt"
+        frame_generate = 40
+    else:
+        test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
+        actors_path = "Actors/"
+        save_path = "Models/model_1200_0.0001_1024.pt"
+        frame_generate = 60
+
+    actors_coma, name_actors_coma = import_actor(path=actors_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
-    save_path = "Models/model_1200_0.0001_1024_COMA_40.pt"
 
     aligned = True
     dataset_test = FastDataset(test_path, actors_coma, name_actors_coma)

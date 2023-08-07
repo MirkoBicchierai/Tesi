@@ -1,4 +1,5 @@
 import os
+import shutil
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -7,6 +8,17 @@ from PIL import Image
 from Get_landmarks import get_landmarks
 
 label_faces_check = []
+
+
+def setup_folder_testing_validation(folder_input, folder_output):
+    gen = folder_input + "/GraphTest"
+    for folder in sorted(os.listdir(gen)):
+        tmp_path = gen + "/" + folder + "/np"
+        file = os.listdir(tmp_path)
+        f_name = file[0]
+        file = tmp_path + "/" + f_name
+        out = folder_output + "/" + f_name.replace("generated_", "")
+        shutil.copy(file, out)
 
 
 def get_actor(landmark_animation, path_gen, actors_coma, name_actors):
@@ -38,14 +50,6 @@ def build_face(output, path_gen, actors_coma, name_actors):
             output[i][j] = output[i][j] + template
     return output
 
-
-# def import_actor(path):
-#     file_list = [path + e for e in sorted(os.listdir(path))]
-#     actors = []
-#     for file in file_list:
-#         mesh = trimesh.load(file, process=False)
-#         actors.append(get_landmarks(mesh.vertices))
-#     return np.asarray(actors)
 
 def import_actor(path):
     file_list = [e for e in sorted(os.listdir(path))]
