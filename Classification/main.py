@@ -8,7 +8,7 @@ from torchmetrics import Accuracy
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from Classification.Model import ClassificationRNN
-from DataLoader import FastDatasetClassification, FastDataset
+from DataLoader import FastDataset
 from common_function import import_actor
 
 seed_value = 27
@@ -20,13 +20,23 @@ np.random.seed(seed_value)
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     coma = True
+    sampling_dataset = False
 
     if coma:
-        type_dataset = "COMA"
-        train_path = "../Landmark_dataset_flame_aligned_coma/dataset_training"
-        test_path = "../Landmark_dataset_flame_aligned_coma/dataset_testing"
+        if sampling_dataset:
+            type_dataset = "COMA"
+            train_path = "../Landmark_dataset_flame_aligned_coma/dataset_training"
+            test_path = "../Landmark_dataset_flame_aligned_coma/dataset_testing"
+            batch_train = 25
+            batch_test = 20
+        else:
+            type_dataset = "COMA_FULL-FRAME"
+            train_path = "../Landmark_dataset_flame_aligned_coma/FULL_FRAME/dataset_training"
+            test_path = "../Landmark_dataset_flame_aligned_coma/FULL_FRAME/dataset_testing"
+            batch_train = 1
+            batch_test = 1
         actors_path = "../Actors_Coma/"
-        lr = 1e-5
+        lr = 1e-4
         epochs = 2000
         hidden_size = 512
         num_classes = 12
@@ -37,6 +47,8 @@ def main():
         test_path = "../Landmark_dataset_flame_aligned/dataset_testing/Partial2"
         actors_path = "../Actors/"
         type_dataset = "COMAFlorence"
+        batch_train = 25
+        batch_test = 20
         lr = 1e-4
         epochs = 2000
         hidden_size = 256
@@ -46,18 +58,18 @@ def main():
 
     save_path = "../Classification/Models/model_" + type_dataset + "_" + str(lr) + "_" + str(
         hidden_size) + "_LAYER" + str(
-        layers) + "_" + type_dataset + ".pt"
+        layers) + ".pt"
     writer = SummaryWriter(
         "../TensorBoard/Classification_" + type_dataset + "_" + str(lr) + "_" + str(
             hidden_size) + "_LAYER" + str(layers) + "_" + datetime.now().strftime(
             "%m-%d-%Y_%H:%M"))
     actors_coma, name_actors_coma = import_actor(path=actors_path)
 
-    dataset_train = FastDataset(train_path, actors_coma, name_actors_coma)
-    training_dataloader = DataLoader(dataset_train, batch_size=25, shuffle=True, drop_last=False, pin_memory=True,
+    dataset_train = FastDataset(train_path, actors_coma, name_actors_coma) # , coma, sampling_dataset
+    training_dataloader = DataLoader(dataset_train, batch_size=batch_train, shuffle=True, drop_last=False, pin_memory=True,
                                      num_workers=5)
     dataset_test = FastDataset(test_path, actors_coma, name_actors_coma)
-    testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=False, drop_last=False)
+    testing_dataloader = DataLoader(dataset_test, batch_size=batch_test, shuffle=False, drop_last=False)
 
     model = ClassificationRNN(hidden_size, input_size, num_classes, device, layers).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -67,7 +79,9 @@ def main():
 
     for epoch in tqdm(range(epochs)):
         tot_loss = 0
-        for landmark_animation, label, path_gen in training_dataloader:
+        for landmark_animation, label, path_gen, length in training_dataloader:
+            # if coma and not sampling_dataset:
+            #     landmark_animation = landmark_animation[:,length]
             optimizer.zero_grad()
             landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
             label = label.to(device)
@@ -86,7 +100,9 @@ def main():
         if not (epoch + 1) % 50:
             tot_acc_test = 0
             model.eval()
-            for landmark_animation, label, path_gen in testing_dataloader:
+            for landmark_animation, label, path_gen, length in testing_dataloader:
+                # if coma and not sampling_dataset:
+                #     landmark_animation = landmark_animation[:, length]
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
                 label = label.to(device)
                 with torch.no_grad():
