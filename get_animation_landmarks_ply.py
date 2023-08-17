@@ -15,7 +15,7 @@ def get_folder(path):
     return folders
 
 
-def plot_graph(vector, label_ptr, face, main_fold, aligned):
+def plot_graph(vector, label_ptr, face, main_fold):
     png_files = []
     for j in range(vector.shape[0]):
         x = np.array([])
@@ -37,18 +37,14 @@ def plot_graph(vector, label_ptr, face, main_fold, aligned):
         p_save = main_fold + "Animation" + '/frame_' + str(j) + '.png'
         png_files.append(p_save)
 
-        if aligned:
-            plt.xlim(-0.10, 0.10)
-            plt.ylim(-0.115, 0.08)
-            step = 0.04
-            n_elements = int((0.10 - (-0.10)) / step) + 1
-            plt.xticks(np.round(np.linspace(-0.10, 0.10, n_elements), 2))
-            step = 0.04
-            n_elements = int((0.08 - (-0.115)) / step) + 1
-            plt.yticks(np.round(np.linspace(-0.115, 0.08, n_elements), 2))
-        else:
-            plt.xlim(-0.115, 0.115)
-            plt.ylim(-0.115, 0.115)
+        plt.xlim(-0.10, 0.10)
+        plt.ylim(-0.115, 0.08)
+        step = 0.04
+        n_elements = int((0.10 - (-0.10)) / step) + 1
+        plt.xticks(np.round(np.linspace(-0.10, 0.10, n_elements), 2))
+        step = 0.04
+        n_elements = int((0.08 - (-0.115)) / step) + 1
+        plt.yticks(np.round(np.linspace(-0.115, 0.08, n_elements), 2))
 
         plt.savefig(p_save, dpi=300)
         plt.close()
@@ -63,7 +59,7 @@ def plot_graph(vector, label_ptr, face, main_fold, aligned):
     for file in png_files: os.remove(file)
 
 
-def save_array(path, save, fold, do_graph, aligned):
+def save_array(path, save, fold, do_graph):
     folders = get_folder(path)
     for f in tqdm(folders):
         actual_label = os.path.basename(os.path.normpath(f))
@@ -78,7 +74,7 @@ def save_array(path, save, fold, do_graph, aligned):
         file = save + "/" + "".join(actual_label) + "_" + actual_face + ".npy"
         np.save(file, landmarks)
         if do_graph:
-            plot_graph(landmarks, "".join(actual_label), actual_face, fold, aligned)
+            plot_graph(landmarks, "".join(actual_label), actual_face, fold)
 
 
 def main():
@@ -89,19 +85,18 @@ def main():
     # Dataset_FLAME Dataset_FLAME_Aligned
     folder_dataset = "Dataset_FLAME_Aligned/"
 
-    aligned = True
     plot = False
 
     print("----- START TRAINING DATASET -----")
     filelist = [f for f in os.listdir(folder + "dataset_training/" + ty + "/")]
     for f in filelist:
         os.remove(os.path.join(folder + "dataset_training/" + ty + "/", f))
-    save_array(folder_dataset + "dataset_training/" + ty, folder + "dataset_training/" + ty, folder, plot, aligned)
+    save_array(folder_dataset + "dataset_training/" + ty, folder + "dataset_training/" + ty, folder, plot)
     print("----- START TESTING DATASET -----")
     filelist = [f for f in os.listdir(folder + "/dataset_testing/" + ty + "/")]
     for f in filelist:
         os.remove(os.path.join(folder + "dataset_testing/" + ty + "/", f))
-    save_array(folder_dataset + "dataset_testing/" + ty, folder + "dataset_testing/" + ty, folder, plot, aligned)
+    save_array(folder_dataset + "dataset_testing/" + ty, folder + "dataset_testing/" + ty, folder, plot)
 
 
 if __name__ == "__main__":

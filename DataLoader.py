@@ -1,8 +1,8 @@
 import os
-from os.path import isfile
 import torch
-from torch.utils.data import Dataset
 import numpy as np
+from torch.utils.data import Dataset
+from os.path import isfile
 
 
 class FastDataset(Dataset):

@@ -62,7 +62,7 @@ def import_actor(path):
     return np.asarray(actors), actors_name
 
 
-def plot_graph(vector, label, epoch, aligned):
+def plot_graph(vector, label, epoch):
     for i in range(vector.shape[0]):
         tmp = os.path.basename(label[i])
         if "FaceTalk" in tmp:
@@ -104,18 +104,15 @@ def plot_graph(vector, label, epoch, aligned):
 
             png_files.append(p_save)
 
-            if aligned:
-                plt.xlim(-0.10, 0.10)
-                plt.ylim(-0.115, 0.08)
-                step = 0.04
-                n_elements = int((0.10 - (-0.10)) / step) + 1
-                plt.xticks(np.round(np.linspace(-0.10, 0.10, n_elements), 2))
-                step = 0.04
-                n_elements = int((0.08 - (-0.115)) / step) + 1
-                plt.yticks(np.round(np.linspace(-0.115, 0.08, n_elements), 2))
-            else:
-                plt.xlim(-0.115, 0.115)
-                plt.ylim(-0.115, 0.115)
+            plt.xlim(-0.10, 0.10)
+            plt.ylim(-0.115, 0.08)
+            step = 0.04
+            n_elements = int((0.10 - (-0.10)) / step) + 1
+            plt.xticks(np.round(np.linspace(-0.10, 0.10, n_elements), 2))
+            step = 0.04
+            n_elements = int((0.08 - (-0.115)) / step) + 1
+            plt.yticks(np.round(np.linspace(-0.115, 0.08, n_elements), 2))
+
             plt.savefig(p_save, dpi=300)
             plt.close()
 

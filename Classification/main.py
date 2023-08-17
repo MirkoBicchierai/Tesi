@@ -65,13 +65,13 @@ def main():
             "%m-%d-%Y_%H:%M"))
     actors_coma, name_actors_coma = import_actor(path=actors_path)
 
-    dataset_train = FastDataset(train_path, actors_coma, name_actors_coma) # , coma, sampling_dataset
+    dataset_train = FastDataset(train_path, actors_coma, name_actors_coma)
     training_dataloader = DataLoader(dataset_train, batch_size=batch_train, shuffle=True, drop_last=False, pin_memory=True,
                                      num_workers=5)
     dataset_test = FastDataset(test_path, actors_coma, name_actors_coma)
     testing_dataloader = DataLoader(dataset_test, batch_size=batch_test, shuffle=False, drop_last=False)
 
-    model = ClassificationRNN(hidden_size, input_size, num_classes, device, layers).to(device)
+    model = ClassificationRNN(hidden_size, input_size, num_classes, layers).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.CrossEntropyLoss()
 
@@ -80,8 +80,6 @@ def main():
     for epoch in tqdm(range(epochs)):
         tot_loss = 0
         for landmark_animation, label, path_gen, length in training_dataloader:
-            # if coma and not sampling_dataset:
-            #     landmark_animation = landmark_animation[:,length]
             optimizer.zero_grad()
             landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
             label = label.to(device)
@@ -101,8 +99,6 @@ def main():
             tot_acc_test = 0
             model.eval()
             for landmark_animation, label, path_gen, length in testing_dataloader:
-                # if coma and not sampling_dataset:
-                #     landmark_animation = landmark_animation[:, length]
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
                 label = label.to(device)
                 with torch.no_grad():

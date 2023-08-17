@@ -6,10 +6,7 @@ import numpy as np
 
 
 class FastDataset(Dataset):
-    def __init__(self, folder_path, actors, name_actors):  # , coma, sampling_dataset
-        # self.max = 315
-        # self.coma = coma
-        # self.sampling_dataset = sampling_dataset
+    def __init__(self, folder_path, actors, name_actors):
         self.actors = actors
         self.name_actors = name_actors
         self.folder_path = folder_path
@@ -48,13 +45,5 @@ class FastDataset(Dataset):
             animation[i] = animation[i] - template
 
         animation = torch.Tensor(animation)
-
         length = animation.shape[0]
-        # if self.coma and not self.sampling_dataset:
-        #     pad_len = self.max - length
-        #
-        #     if pad_len > 0:
-        #         padding = torch.zeros([pad_len, animation.shape[1], animation.shape[2]])
-        #         animation = torch.cat([animation, padding], dim=0)
-
         return animation, self.dict_emotions[label], path, length

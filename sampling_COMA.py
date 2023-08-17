@@ -1,8 +1,8 @@
 import shutil
 import os
 import numpy as np
-from pyntcloud import PyntCloud
 import pandas as pd
+from pyntcloud import PyntCloud
 
 
 def copy_file(src_folder, dst_folder, file_name):
@@ -12,12 +12,12 @@ def copy_file(src_folder, dst_folder, file_name):
 
 
 def interpolate_frames(frame1, frame2, num_interpolated_frames):
-    t_values = np.linspace(0, 1, num=num_interpolated_frames + 2)[1:-1]  # Exclude endpoints
+    t_values = np.linspace(0, 1, num=num_interpolated_frames + 2)[1:-1]
     interpolated_frames = [(1 - t) * frame1 + t * frame2 for t in t_values]
     return interpolated_frames
 
 
-def downsample_animation(input_folder, output_folder, target_frames, n_interpolation):
+def down_sample_animation(input_folder, output_folder, target_frames, n_interpolation):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
@@ -47,8 +47,8 @@ def downsample_animation(input_folder, output_folder, target_frames, n_interpola
 
         for i, frame_points in enumerate(interpolated_frames):
             output_path = os.path.join(output_folder, f"interpolated_{target_idx * 6 + i:03d}.ply")
-            downsampled_cloud = PyntCloud(pd.DataFrame(frame_points, columns=['x', 'y', 'z']))
-            downsampled_cloud.to_file(output_path)
+            down_sampled_cloud = PyntCloud(pd.DataFrame(frame_points, columns=['x', 'y', 'z']))
+            down_sampled_cloud.to_file(output_path)
 
 
 def main():
@@ -79,12 +79,12 @@ def main():
             if tmp_num_frame < 41:
                 target_frames = tmp_num_frame
                 n = 4
-                downsample_animation(tmp_in, tmp_out_, target_frames, n_interpolation=n)
+                down_sample_animation(tmp_in, tmp_out_, target_frames, n_interpolation=n)
                 tmp_in = tmp_out_
 
             target_frames = 41
             n = 1
-            downsample_animation(tmp_in, tmp_out, target_frames, n_interpolation=n)
+            down_sample_animation(tmp_in, tmp_out, target_frames, n_interpolation=n)
 
 
 if __name__ == "__main__":
