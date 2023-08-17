@@ -20,7 +20,7 @@ def main():
     else:
         test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
         actors_path = "Actors/"
-        save_path = "Models/model_1200_0.0001_1024.pt"
+        save_path = "Models/model_L1_1200_0.0001_256_COMA_Florence.pt"
         frame_generate = 60
 
     actors_coma, name_actors_coma = import_actor(path=actors_path)

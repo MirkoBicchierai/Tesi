@@ -22,7 +22,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     coma = False
-    loss_l2 = False
+    loss_l2 = True
     if loss_l2:
         loss_ty = "L2"
     else:

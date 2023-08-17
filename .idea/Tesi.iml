@@ -8,7 +8,6 @@
       <excludeFolder url="file://$MODULE_DIR$/Landmark_dataset_flame" />
       <excludeFolder url="file://$MODULE_DIR$/dataset" />
       <excludeFolder url="file://$MODULE_DIR$/GeneratedVideo" />
-      <excludeFolder url="file://$MODULE_DIR$/Generated_Animation" />
       <excludeFolder url="file://$MODULE_DIR$/Generazioni" />
       <excludeFolder url="file://$MODULE_DIR$/Dataset_FLAME_Aligned" />
       <excludeFolder url="file://$MODULE_DIR$/Landmark_dataset_flame_aligned" />
@@ -18,6 +17,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test_landmark" />
       <excludeFolder url="file://$MODULE_DIR$/sampling" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
+      <excludeFolder url="file://$MODULE_DIR$/Generated_Animation" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
