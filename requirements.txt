@@ -138,3 +138,8 @@ Werkzeug==2.2.3
 widgetsnbextension==4.0.7
 yacs @ file:///home/conda/feedstock_root/build_artifacts/yacs_1645705974477/work
 zipp==3.15.0
+
+numpy~=1.24.3
+trimesh~=3.21.6
+scikit-learn~=1.2.2
+tqdm~=4.65.0
