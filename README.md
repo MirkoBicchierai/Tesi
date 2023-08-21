@@ -1,21 +1,40 @@
-# Generazione di espressioni facciali 3D con una rete LSTM
-Nel file requirements.txt si trovano tutte le libreire con le relative versioni e dipendenze necessarie per avvia il training della rete.
+# Generating 3D facial expressions using an LSTM network
+In the requirements.txt file, you will find all the libraries along with their respective versions and dependencies necessary to initiate the training of the network.
 
-E' possibile scaricare il dataset CoMA da qui: https://coma.is.tue.mpg.de/ mentre per il dataset CoMA_Florence e disponibile qui: https://drive.google.com/drive/folders/14TLFQkWXPwujeApwpjbS15ZYA7_zirwl .
+You can download the CoMA dataset from here: https://coma.is.tue.mpg.de/, while the CoMA_Florence dataset is available here: https://drive.google.com/drive/folders/14TLFQkWXPwujeApwpjbS15ZYA7_zirwl.
 
-Per il dataset Coma sono state usate tutte le 12 label per ogni volto mentre per il dataset CoMA_Florence sono state usate solo 10 label su 70 (Cheeky, Confused, Cool, Displeased, Happy, Kissy, Moody, Rage, Sad2, Scream).
+For the CoMA dataset, all 12 labels have been used for each face, whereas for the CoMA_Florence dataset, only 10 labels out of 70 have been used (Cheeky, Confused, Cool, Displeased, Happy, Kissy, Moody, Rage, Sad2, Scream).
 
-# Risultati
+# Result with CoMA_Florence
 
-# Come usare la rete
+<img align="left" src="https://github.com/MirkoBicchierai/Tesi/blob/master/git_readme_img/CH01_Cheeky.gif" width="50%">
+<img align="left" src="https://github.com/MirkoBicchierai/Tesi/blob/master/git_readme_img/CH01_Confused.gif" width="50%">
+<img align="left" src="https://github.com/MirkoBicchierai/Tesi/blob/master/git_readme_img/CH01_Cool.gif" width="50%">
+<img align="left" src="https://github.com/MirkoBicchierai/Tesi/blob/master/git_readme_img/CH01_Displeased.gif" width="50%">
+<img align="left" src="https://github.com/MirkoBicchierai/Tesi/blob/master/git_readme_img/CH01_Happy.gif" width="50%">
+<img align="left" src="https://github.com/MirkoBicchierai/Tesi/blob/master/git_readme_img/CH01_Kissy.gif" width="50%">
+<img align="left" src="https://github.com/MirkoBicchierai/Tesi/blob/master/git_readme_img/CH01_Moody.gif" width="50%">
+<img align="left" src="https://github.com/MirkoBicchierai/Tesi/blob/master/git_readme_img/CH01_Rage.gif" width="50%">
+<img align="left" src="https://github.com/MirkoBicchierai/Tesi/blob/master/git_readme_img/CH01_Sad2.gif" width="50%">
+<img align="left" src="https://github.com/MirkoBicchierai/Tesi/blob/master/git_readme_img/CH01_Scream.gif" width="50%">
 
-Il dataset CoMA_Florence presenta dei file .obj per ogni frame che devono essere prima trasformati in .ply per il corretto funzionamento.
+# Setup Folder
 
-Per estrarre i landmark dal dataset CoMA_Florence usare il file get_animation_landmark_ply.py
+Create the "Dataset_FLAME_Aligned" folder and place the CoMA_Florence dataset inside it before extracting the landmarks.
 
-Sulle sequenzze del dataset CoMA è stata effettuata un interpolazione e poi un campionato a 40 frame per ogni sequenza, il codice per farlo si trova nel file sampling_COMA.py. una volta eseguita tale operazione è possibile estrarre i landmark per ogni frame con il codice nel file get_landmark_COMA.py.
+Create the "Dataset_FLAME_Aligned_COMA" folder and perform the same procedure for the CoMA dataset before extracting the landmarks.
 
-Il file main.py contiene il train loop della rete LSTMCell per la generazione dell'espressione 3D mentre nel file test.py la generazione vera e proprio della sequenza.
+# How to use
 
-Nella cartella "Classification" si trova la rete LSTM per la classificazione delle sequenze generate.
+
+The CoMA_Florence dataset provides .obj files for each frame that need to be converted to .ply format for proper functioning.
+
+To extract landmarks from the CoMA_Florence dataset, use the file get_animation_landmark_ply.py.
+
+For the sequences in the CoMA dataset, interpolation and downsampling to 40 frames per sequence have been performed. The code for this can be found in the sampling_COMA.py file. Once this operation is completed, you can extract landmarks for each frame using the code in the get_landmark_COMA.py file.
+
+The main.py file contains the training loop for the LSTMCell network for generating 3D expressions, while the test.py file handles the actual generation of the sequence.
+
+In the "Classification" folder, you'll find the LSTM network for classifying the generated sequences.
+
 
