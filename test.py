@@ -10,17 +10,17 @@ from common_function import label_faces_check, plot_graph, import_actor, build_f
 def main():
     shutil.rmtree("GraphTest/", ignore_errors=False, onerror=None)
     os.makedirs("GraphTest/")
-    coma = False
+    coma = True
 
     if coma:
         test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
         actors_path = "Actors_Coma/"
-        save_path = "Models/model_1200_0.0001_2048_COMA.pt"
+        save_path = "Models/model_L1_1200_1e-05_256_COMA.pt"
         frame_generate = 40
     else:
         test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
         actors_path = "Actors/"
-        save_path = "Models/model_L1_1200_0.0001_256_COMA_Florence.pt"
+        save_path = "Models/model_L1_1200_1e-05_1024_COMA_Florence.pt"
         frame_generate = 60
 
     actors_coma, name_actors_coma = import_actor(path=actors_path)

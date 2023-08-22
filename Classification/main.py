@@ -30,23 +30,23 @@ def main():
             batch_train = 25
             batch_test = 20
         else:
-            type_dataset = "COMA_FULL-FRAME"
+            type_dataset = "COMA_FULL_FRAME"
             train_path = "../Landmark_dataset_flame_aligned_coma/FULL_FRAME/dataset_training"
             test_path = "../Landmark_dataset_flame_aligned_coma/FULL_FRAME/dataset_testing"
             batch_train = 1
             batch_test = 1
         actors_path = "../Actors_Coma/"
-        lr = 1e-4
+        lr = 1e-5
         epochs = 2000
-        hidden_size = 512
+        hidden_size = 256
         num_classes = 12
         input_size = (68 * 3)
-        layers = 1
+        layers = 2
     else:
         train_path = "../Landmark_dataset_flame_aligned/dataset_training/Partial2"
         test_path = "../Landmark_dataset_flame_aligned/dataset_testing/Partial2"
         actors_path = "../Actors/"
-        type_dataset = "COMAFlorence"
+        type_dataset = "COMA_Florence"
         batch_train = 25
         batch_test = 20
         lr = 1e-4
@@ -54,14 +54,13 @@ def main():
         hidden_size = 256
         num_classes = 10
         input_size = (68 * 3)
-        layers = 1
+        layers = 2
 
-    save_path = "../Classification/Models/model_" + type_dataset + "_" + str(lr) + "_" + str(
-        hidden_size) + "_LAYER" + str(
-        layers) + ".pt"
+    save_path = "../Classification/Models/model_" + str(layers) + "_" + str(lr) + "_" + str(
+        hidden_size) + "_" + type_dataset + ".pt"
     writer = SummaryWriter(
-        "../TensorBoard/Classification_" + type_dataset + "_" + str(lr) + "_" + str(
-            hidden_size) + "_LAYER" + str(layers) + "_" + datetime.now().strftime(
+        "../TensorBoard/Classification_" + str(layers) + "_" + str(lr) + "_" + str(
+            hidden_size) + "_" + type_dataset + "_" + datetime.now().strftime(
             "%m-%d-%Y_%H:%M"))
     actors_coma, name_actors_coma = import_actor(path=actors_path)
 
