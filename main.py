@@ -27,7 +27,6 @@ def main():
         loss_ty = "L2"
     else:
         loss_ty = "L1"
-
     if coma:
         train_path = "Landmark_dataset_flame_aligned_coma/dataset_training"
         test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
