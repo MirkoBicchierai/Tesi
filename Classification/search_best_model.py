@@ -7,31 +7,7 @@ from common_function import import_actor, setup_folder_testing_validation
 from torchmetrics import Accuracy
 
 
-# def search(model_list, folder_list, actors_path, num_classes, device, test_sets_path):
-#     actors_coma, name_actors_coma = import_actor(path=actors_path)
-#     for model_path in model_list:
-#         print("Model: " + model_path[len("Models/"):])
-#         model = torch.load(model_path)
-#         model.eval()
-#         for f in folder_list:
-#             print("---------------------------")
-#             print("Generation: " + f[len("../Generated_Animation/"):])
-#             test_path = f + "/testing"
-#             dataset_test = FastDataset(test_path, actors_coma, name_actors_coma)
-#             testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=False, drop_last=False)
-#             tot_acc_test = 0
-#             accuracy = Accuracy(task="multiclass", num_classes=num_classes).to(device)
-#             for landmark_animation, label, path_gen, length in testing_dataloader:
-#                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
-#                 label = label.to(device)
-#                 with torch.no_grad():
-#                     logits = model(landmark_animation)
-#                 tot_acc_test += accuracy(logits, label).item()
-#
-#             print("Accuracy: " + str(tot_acc_test / len(testing_dataloader)))
-
 def search(model_list, actors_path, num_classes, device, test_sets_path):
-    best_model = []
     actors_coma, name_actors_coma = import_actor(path=actors_path)
     accuracy_list = {}
     for model_path in model_list:
