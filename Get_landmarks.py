@@ -48,9 +48,7 @@ def load_dynamic_contour(vertices, faces, contour_embeddings_path='None', static
 
 
 def get_landmarks(vertices):
-    # angle = 35.0 #in degrees
-    angle = 0.0  # in degrees
-    # angle = -16.0 #in degrees
+    angle = 0.0
     if angle < 0:
         angle = 39 - angle
     contour_embeddings_path = '../S2D/template/flame_model/flame_dynamic_embedding.npy'

@@ -21,8 +21,8 @@ np.random.seed(seed_value)
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    coma = False
-    loss_l2 = True
+    coma = True
+    loss_l2 = False
     if loss_l2:
         loss_ty = "L2"
     else:
@@ -32,7 +32,7 @@ def main():
         test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
         actors_path = "Actors_Coma/"
         type_dataset = "COMA"
-        hidden_size = 256
+        hidden_size = 2048
         num_classes = 12
         output_size = (68 * 3)
         frame_generate = 40

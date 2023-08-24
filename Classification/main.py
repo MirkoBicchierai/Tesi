@@ -20,7 +20,7 @@ np.random.seed(seed_value)
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     coma = True
-    sampling_dataset = False
+    sampling_dataset = True
 
     if coma:
         if sampling_dataset:
@@ -38,10 +38,10 @@ def main():
         actors_path = "../Actors_Coma/"
         lr = 1e-5
         epochs = 2000
-        hidden_size = 256
+        hidden_size = 1024
         num_classes = 12
         input_size = (68 * 3)
-        layers = 2
+        layers = 3
     else:
         train_path = "../Landmark_dataset_flame_aligned/dataset_training/Partial2"
         test_path = "../Landmark_dataset_flame_aligned/dataset_testing/Partial2"
@@ -49,7 +49,7 @@ def main():
         type_dataset = "COMA_Florence"
         batch_train = 25
         batch_test = 20
-        lr = 1e-4
+        lr = 1e-5
         epochs = 2000
         hidden_size = 256
         num_classes = 10

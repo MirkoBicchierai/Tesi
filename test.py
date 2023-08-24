@@ -15,7 +15,7 @@ def main():
     if coma:
         test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
         actors_path = "Actors_Coma/"
-        save_path = "Models/model_L1_1200_1e-05_256_COMA.pt"
+        save_path = "Models/model_L1_1200_1e-05_2048_COMA.pt"
         frame_generate = 40
     else:
         test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
