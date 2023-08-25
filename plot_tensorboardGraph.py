@@ -29,7 +29,7 @@ def get_csv():
 def main():
     df = pd.read_csv('csv_tensorboard/experiments.csv')
 
-    df = df[df['run'].str.contains("COMA_FULL_FRAME")]
+    df = df[df['run'].str.contains("Classification_3")]
 
     names_graph = sorted(np.unique(df[['tag']]))
     graph = {}
@@ -53,12 +53,12 @@ def main():
         for k_run, v_run in v.items():
             if "Classification" in k:
                 if "COMA_Florence" in k_run:
-                    leg = k_run[15:-31]
+                    leg = k_run[17:-31]
                 else:
                     if "COMA_FULL_FRAME" in k_run:
                         leg = k_run[15:-33]
                     else:
-                        leg = k_run[15:-22]
+                        leg = k_run[17:-22]
             else:
                 if "COMA_Florence" in k_run:
                     leg = k_run[:-31]
@@ -69,28 +69,24 @@ def main():
                 plt.xlabel('Time-Step')
                 plt.ylabel('Loss')
             else:
-                if ("Validation_Accuracy") in k:
+                if "Validation_Accuracy" in k:
                     plt.xlabel('Time-Step')
                     plt.ylabel('Accuracy')
                 if "validation" in k:
                     plt.xlabel('Time-Step')
                     plt.ylabel('Loss')
-
-            alpha = 0.2  # Fattore di smoothing
-            ema = [v_run[1][0]]  # Il primo valore è uguale al dato iniziale
+            leg = leg.replace("L2_1200", "")
+            leg = leg.replace("L1_1200", "")
+            leg = leg.replace("_", " ")
+            leg = leg.replace("0.0001", "1e-4")
+            alpha = 0.2
+            ema = [v_run[1][0]]
 
             for i in range(1, len(v_run[1])):
                 ema.append(alpha * v_run[1][i] + (1 - alpha) * ema[i - 1])
 
-            red = random.randint(0, 255)
-            green = random.randint(0, 255)
-            blue = random.randint(0, 255)
-
-            # Converti i valori RGB in esadecimale
-            hex_color = "#{:02x}{:02x}{:02x}".format(red, green, blue)
-            # Crea il grafico
             plt.plot(v_run[0], ema, label=leg, c=colors[j])
-            plt.plot(v_run[0], v_run[1], c=colors[j], alpha=0.2)
+            plt.plot(v_run[0], v_run[1], c=colors[j], alpha=0.25)
             j = j + 1
 
         plt.grid(True)
