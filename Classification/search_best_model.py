@@ -26,7 +26,7 @@ def search(model_list, actors_path, num_classes, device, test_sets_path):
                 logits = model(landmark_animation)
             tot_acc_test += accuracy(logits, label).item()
 
-        print("Accuracy: " + str(tot_acc_test / len(testing_dataloader)))
+        print("Accuracy: " + str(round((tot_acc_test / len(testing_dataloader)*100), 2)) + "%")
         accuracy_list[model_path[len("Models/"):]] = tot_acc_test / len(testing_dataloader)
 
     best_model = max_keys_value(accuracy_list)
@@ -57,7 +57,6 @@ def calculate_accuracy_best_gen(best_model_list, best_gen, actors_path, num_clas
     actors_coma, name_actors_coma = import_actor(path=actors_path)
     accuracy_list = {}
     for p, _ in best_model_list.items():
-
         model_path = "Models/" + p
         model = torch.load(model_path)
         model.eval()
@@ -73,7 +72,7 @@ def calculate_accuracy_best_gen(best_model_list, best_gen, actors_path, num_clas
             tot_acc_test += accuracy(logits, label).item()
 
         accuracy_list[p] = tot_acc_test / len(testing_dataloader)
-        print("Model: " + p + " Accuracy Generation: " + str(tot_acc_test / len(testing_dataloader)))
+        print("Model: " + p + " Accuracy Generation: " + str(round((tot_acc_test / len(testing_dataloader)*100), 2)) + "%")
 
     return max_keys_value(accuracy_list)
 

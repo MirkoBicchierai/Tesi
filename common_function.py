@@ -62,6 +62,43 @@ def import_actor(path):
     return np.asarray(actors), actors_name
 
 
+def plot_frame(animation, path):
+    png_files = []
+    for j in range(animation.shape[0]):
+        x = np.array([])
+        y = np.array([])
+        z = np.array([])
+        for point in animation[j]:
+            x = np.append(x, point[0])
+            y = np.append(y, point[1])
+            z = np.append(z, point[2])
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        ax.scatter(x, y, z)
+        ax.view_init(90, -90)
+
+        p_save = path + "/frame_" + str(j) + ".png"
+        png_files.append(p_save)
+
+        plt.xlim(-0.10, 0.10)
+        plt.ylim(-0.115, 0.08)
+        step = 0.04
+        n_elements = int((0.10 - (-0.10)) / step) + 1
+        plt.xticks(np.round(np.linspace(-0.10, 0.10, n_elements), 2))
+        step = 0.04
+        n_elements = int((0.08 - (-0.115)) / step) + 1
+        plt.yticks(np.round(np.linspace(-0.115, 0.08, n_elements), 2))
+
+        plt.savefig(p_save, dpi=300)
+        plt.close()
+
+    pass
+
+
 def plot_graph(vector, label, epoch):
     for i in range(vector.shape[0]):
         tmp = os.path.basename(label[i])
@@ -103,7 +140,6 @@ def plot_graph(vector, label, epoch):
                     j) + '.png'
 
             png_files.append(p_save)
-
             plt.xlim(-0.10, 0.10)
             plt.ylim(-0.115, 0.08)
             step = 0.04
@@ -113,7 +149,7 @@ def plot_graph(vector, label, epoch):
             n_elements = int((0.08 - (-0.115)) / step) + 1
             plt.yticks(np.round(np.linspace(-0.115, 0.08, n_elements), 2))
 
-            plt.savefig(p_save, dpi=300)
+            plt.savefig(p_save, dpi=300, bbox_inches='tight', transparent="True", pad_inches=0)
             plt.close()
 
         if epoch == -1:
