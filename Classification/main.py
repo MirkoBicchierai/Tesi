@@ -36,12 +36,12 @@ def main():
             batch_train = 1
             batch_test = 1
         actors_path = "../Actors_Coma/"
-        lr = 1e-5
-        epochs = 2000
-        hidden_size = 1024
+        lr = 1e-4
+        epochs = 800
+        hidden_size = 128
         num_classes = 12
         input_size = (68 * 3)
-        layers = 3
+        layers = 2
     else:
         train_path = "../Landmark_dataset_flame_aligned/dataset_training/Partial2"
         test_path = "../Landmark_dataset_flame_aligned/dataset_testing/Partial2"
@@ -57,10 +57,10 @@ def main():
         layers = 2
 
     save_path = "../Classification/Models/model_" + str(layers) + "_" + str(lr) + "_" + str(
-        hidden_size) + "_" + type_dataset + ".pt"
+        hidden_size) + "_" + type_dataset + "_DiffSplit.pt"
     writer = SummaryWriter(
         "../TensorBoard/Classification_" + str(layers) + "_" + str(lr) + "_" + str(
-            hidden_size) + "_" + type_dataset + "_" + datetime.now().strftime(
+            hidden_size) + "_" + type_dataset + "_DiffSplit_" + datetime.now().strftime(
             "%m-%d-%Y_%H:%M"))
     actors_coma, name_actors_coma = import_actor(path=actors_path)
 
