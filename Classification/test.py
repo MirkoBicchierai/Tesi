@@ -11,10 +11,10 @@ from torchmetrics import Accuracy
 def main():
     coma = True
     if coma:
-        folder_gen = "../Generated_Animation/COMA_40_1024_E4_1200"
+        folder_gen = "../Generated_Animation/L1_1200_0.0001_128_COMA"
         actors_path = "../Actors_Coma/"
         num_classes = 12
-        save_path = "Models/model_COMA_0.0001_256_LAYER2.pt"
+        save_path = "Models/model_1_0.0001_128_COMA.pt"
 
     else:
         folder_gen = "../Generated_Animation/COMA_FLORENCE_1024_E4_1200"
@@ -38,6 +38,8 @@ def main():
     model.eval()
     tot_acc_test = 0
 
+    pd =[]
+
     accuracy = Accuracy(task="multiclass", num_classes=num_classes).to(device)
     for landmark_animation, label, path_gen, length in tqdm(testing_dataloader):
         landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
@@ -47,6 +49,8 @@ def main():
             logits = model(landmark_animation)
 
         tot_acc_test += accuracy(logits, label).item()
+
+        pd.append(model.get_distr(landmark_animation))
 
     print("Accuracy: " + str(tot_acc_test / len(testing_dataloader)))
 

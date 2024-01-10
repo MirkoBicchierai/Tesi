@@ -32,7 +32,7 @@ def main():
         test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
         actors_path = "Actors_Coma/"
         type_dataset = "COMA"
-        hidden_size = 2048
+        hidden_size = 1024
         num_classes = 12
         output_size = (68 * 3)
         frame_generate = 40
@@ -43,19 +43,19 @@ def main():
         test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
         actors_path = "Actors/"
         type_dataset = "COMA_Florence"
-        hidden_size = 2048  # 1024
+        hidden_size = 1024
         num_classes = 10
         output_size = (68 * 3)
         frame_generate = 60
-        lr = 1e-5  # 1e-4
+        lr = 1e-4
         epochs = 1200
 
     save_path = "Models/model_" + loss_ty + "_" + str(epochs) + "_" + str(lr) + "_" + str(
-        hidden_size) + "_" + type_dataset + ".pt"
+        hidden_size) + "_" + type_dataset + "_DiffSplit.pt"
 
     actors_coma, name_actors_coma = import_actor(path=actors_path)
     writer = SummaryWriter("TensorBoard/" + loss_ty + "_" + str(epochs) + "_" + str(lr) + "_" + str(
-        hidden_size) + "_" + type_dataset + "_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
+        hidden_size) + "_" + type_dataset + "_DiffSplit_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
 
     shutil.rmtree("GraphTrain/", ignore_errors=False, onerror=None)
     os.makedirs("GraphTrain/")
