@@ -7,10 +7,14 @@ import torch.nn.functional as F
 from datetime import datetime
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+
+from Classification.inting import get_distr_real, get_distr_acc_generated, compute_fid
 from DataLoader import FastDataset
 from Model import DecoderRNN
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 from common_function import plot_graph, import_actor, build_face
+import warnings
+warnings.filterwarnings("ignore")
 
 seed_value = 27
 torch.manual_seed(seed_value)
@@ -20,6 +24,7 @@ np.random.seed(seed_value)
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
 
     coma = True
     loss_l2 = False
@@ -32,12 +37,12 @@ def main():
         test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
         actors_path = "Actors_Coma/"
         type_dataset = "COMA"
-        hidden_size = 1024
+        hidden_size = 512
         num_classes = 12
         output_size = (68 * 3)
         frame_generate = 40
         lr = 1e-5
-        epochs = 1200
+        epochs = 1000
     else:
         train_path = "Landmark_dataset_flame_aligned/dataset_training/Partial2"
         test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
@@ -54,11 +59,13 @@ def main():
         hidden_size) + "_" + type_dataset + "_DiffSplit.pt"
 
     actors_coma, name_actors_coma = import_actor(path=actors_path)
-    writer = SummaryWriter("TensorBoard/" + loss_ty + "_" + str(epochs) + "_" + str(lr) + "_" + str(
-        hidden_size) + "_" + type_dataset + "_DiffSplit_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
+    # writer = SummaryWriter("TensorBoard/" + loss_ty + "_" + str(epochs) + "_" + str(lr) + "_" + str(
+    #     hidden_size) + "_" + type_dataset + "_DiffSplit_" + datetime.now().strftime("%m-%d-%Y_%H:%M"))
 
     shutil.rmtree("GraphTrain/", ignore_errors=False, onerror=None)
     os.makedirs("GraphTrain/")
+
+    m_real, cov_real = get_distr_real()
 
     dataset_train = FastDataset(train_path, actors_coma, name_actors_coma)
     training_dataloader = DataLoader(dataset_train, batch_size=25, shuffle=True, drop_last=False, pin_memory=True,
@@ -84,7 +91,7 @@ def main():
                 loss.backward()
                 optimizer.step()
 
-        writer.add_scalar('Loss/' + type_dataset + '/train', tot_loss / len(training_dataloader), epoch + 1)
+        # writer.add_scalar('Loss/' + type_dataset + '/train', tot_loss / len(training_dataloader), epoch + 1)
 
         if not (epoch + 1) % 10:
             print("Epoch: ", epoch + 1, " - Training loss: ", tot_loss / len(training_dataloader))
@@ -93,10 +100,15 @@ def main():
             tot_loss_test = 0
             model.eval()
             check = True
+
+            generated = torch.Tensor([]).to(device)
+            labels = torch.Tensor([]).to(device)
             for landmark_animation, label, path_gen in testing_dataloader:
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
+
                 with torch.no_grad():
                     output = model(landmark_animation[:, 0], label, frame_generate)
+
                     if check:
                         plot_graph(build_face(output, path_gen, actors_coma, name_actors_coma), path_gen, epoch)
                     check = False
@@ -106,15 +118,24 @@ def main():
                     test_loss = F.l1_loss(output, landmark_animation[:, 1:])
                 tot_loss_test += test_loss.item()
 
-            writer.add_scalar('Loss/' + type_dataset + '/validation', tot_loss_test / len(testing_dataloader),
-                              epoch + 1)
+                label = label.to(device)
+                generated = torch.cat([generated, output])
+                labels = torch.cat([labels, label])
+
+            m_fake, cov_fake, acc = get_distr_acc_generated(generated, labels)
+
+            fid = compute_fid(m_fake, cov_fake, m_real, cov_real)
+
+            # writer.add_scalar('Loss/' + type_dataset + '/validation', tot_loss_test / len(testing_dataloader),
+            #                   epoch + 1)
             print("Epoch: ", epoch + 1, " - Testing loss: ", tot_loss_test / len(testing_dataloader))
+            print("Accuracy=", acc, "FID=", fid)
             model.train()
 
     torch.save(model, save_path)
 
-    writer.flush()
-    writer.close()
+    # writer.flush()
+    # writer.close()
 
 
 if __name__ == "__main__":

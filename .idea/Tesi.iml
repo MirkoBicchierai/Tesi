@@ -18,8 +18,9 @@
       <excludeFolder url="file://$MODULE_DIR$/sampling" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/Generated_Animation" />
+      <excludeFolder url="file://$MODULE_DIR$/Classification/TrainDatasetCOMA" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="faccie" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

@@ -3,7 +3,7 @@ import torch
 import os
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from DataLoader import FastDataset
+from DataLoader import FastDatasetC
 from common_function import import_actor, setup_folder_testing_validation
 from torchmetrics import Accuracy
 
@@ -31,7 +31,7 @@ def main():
     actors_coma, name_actors_coma = import_actor(path=actors_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    dataset_test = FastDataset(test_path, actors_coma, name_actors_coma)
+    dataset_test = FastDatasetC(test_path, actors_coma, name_actors_coma)
     testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=False, drop_last=False)
 
     model = torch.load(save_path)

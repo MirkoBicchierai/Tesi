@@ -25,9 +25,9 @@ def main():
     if coma:
         if sampling_dataset:
             type_dataset = "COMA"
-            train_path = "../Landmark_dataset_flame_aligned_coma/dataset_training"
+            train_path = "datasetCOMA"
             test_path = "../Landmark_dataset_flame_aligned_coma/dataset_testing"
-            batch_train = 25
+            batch_train = 1
             batch_test = 20
         else:
             type_dataset = "COMA_FULL_FRAME"
@@ -57,17 +57,17 @@ def main():
         layers = 2
 
     save_path = "../Classification/Models/model_" + str(layers) + "_" + str(lr) + "_" + str(
-        hidden_size) + "_" + type_dataset + "_DiffSplit.pt"
-    writer = SummaryWriter(
-        "../TensorBoard/Classification_" + str(layers) + "_" + str(lr) + "_" + str(
-            hidden_size) + "_" + type_dataset + "_DiffSplit_" + datetime.now().strftime(
-            "%m-%d-%Y_%H:%M"))
+        hidden_size) + "_" + type_dataset + "_DiffSplit_Simple_spost.pt"
+    # writer = SummaryWriter(
+    #     "../TensorBoard/Classification_" + str(layers) + "_" + str(lr) + "_" + str(
+    #         hidden_size) + "_" + type_dataset + "_DiffSplit_" + datetime.now().strftime(
+    #         "%m-%d-%Y_%H:%M"))
     actors_coma, name_actors_coma = import_actor(path=actors_path)
 
     dataset_train = FastDataset(train_path, actors_coma, name_actors_coma)
     training_dataloader = DataLoader(dataset_train, batch_size=batch_train, shuffle=True, drop_last=False, pin_memory=True,
                                      num_workers=5)
-    dataset_test = FastDataset(test_path, actors_coma, name_actors_coma)
+    dataset_test = FastDatasetC(test_path, actors_coma, name_actors_coma)
     testing_dataloader = DataLoader(dataset_test, batch_size=batch_test, shuffle=False, drop_last=False)
 
     model = ClassificationRNN(hidden_size, input_size, num_classes, layers).to(device)
@@ -88,8 +88,8 @@ def main():
             loss.backward()
             optimizer.step()
 
-        writer.add_scalar('Classification/' + type_dataset + '/Validation_loss_train',
-                          tot_loss / len(training_dataloader), epoch + 1)
+        # writer.add_scalar('Classification/' + type_dataset + '/Validation_loss_train',
+        #                   tot_loss / len(training_dataloader), epoch + 1)
 
         if not (epoch + 1) % 10:
             print("Epoch: ", epoch + 1, " - Training loss: ", tot_loss / len(training_dataloader))
@@ -105,15 +105,15 @@ def main():
 
                 tot_acc_test += accuracy(logits, label).item()
 
-            writer.add_scalar('Classification/' + type_dataset + '/Validation_Accuracy',
-                              tot_acc_test / len(testing_dataloader), epoch + 1)
+            # writer.add_scalar('Classification/' + type_dataset + '/Validation_Accuracy',
+            #                   tot_acc_test / len(testing_dataloader), epoch + 1)
             print("Epoch: ", epoch + 1, " - Testing Accuracy: ", tot_acc_test / len(testing_dataloader))
             model.train()
 
     torch.save(model, save_path)
 
-    writer.flush()
-    writer.close()
+    # writer.flush()
+    # writer.close()
 
 
 if __name__ == "__main__":
