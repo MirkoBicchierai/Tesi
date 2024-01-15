@@ -19,6 +19,16 @@
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/Generated_Animation" />
       <excludeFolder url="file://$MODULE_DIR$/Classification/TrainDatasetCOMA" />
+      <excludeFolder url="file://$MODULE_DIR$/Demo_Only_Meshes/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/Demo_Only_Meshes/Actors_Coma" />
+      <excludeFolder url="file://$MODULE_DIR$/Demo_Only_Meshes/GraphTestCOMA" />
+      <excludeFolder url="file://$MODULE_DIR$/Demo_Only_Meshes/GraphTestCOMAFlorence" />
+      <excludeFolder url="file://$MODULE_DIR$/Demo_Only_Meshes/Models" />
+      <excludeFolder url="file://$MODULE_DIR$/Demo_Only_Meshes/img" />
+      <excludeFolder url="file://$MODULE_DIR$/Demo_Only_Meshes/video40" />
+      <excludeFolder url="file://$MODULE_DIR$/Demo_Only_Meshes/videoCOMA" />
+      <excludeFolder url="file://$MODULE_DIR$/Demo_Only_Meshes/videoCOMAFlorence" />
+      <excludeFolder url="file://$MODULE_DIR$/Demo_Only_Meshes/S2D/VOCA_dataset_sus" />
     </content>
     <orderEntry type="jdk" jdkName="faccie" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
