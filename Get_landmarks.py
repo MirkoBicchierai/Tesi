@@ -51,18 +51,10 @@ def get_landmarks(vertices):
     angle = 0.0
     if angle < 0:
         angle = 39 - angle
-    contour_embeddings_path = 'S2D/template/flame_model/flame_dynamic_embedding.npy'
-    static_embedding_path = 'S2D/template/flame_model/flame_static_embedding.pkl'
-
-    try:
-        template_mesh = trimesh.load('S2D/template/template/template.obj',
-                                     process=False)
-    except:
-        contour_embeddings_path = '../S2D/template/flame_model/flame_dynamic_embedding.npy'
-        static_embedding_path = '../S2D/template/flame_model/flame_static_embedding.pkl'
-        template_mesh = trimesh.load('../S2D/template/template/template.obj',
-                                     process=False)
-
+    contour_embeddings_path = './S2D/template/flame_model/flame_dynamic_embedding.npy'
+    static_embedding_path = './S2D/template/flame_model/flame_static_embedding.pkl'
+    template_mesh = trimesh.load('./S2D/template/template/template.obj',
+                                 process=False)
     faces = template_mesh.faces
     total_lmks = load_dynamic_contour(vertices, faces, contour_embeddings_path=contour_embeddings_path,
                                       static_embedding_path=static_embedding_path, angle=int(angle))

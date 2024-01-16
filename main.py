@@ -2,28 +2,21 @@ import argparse
 import os
 import shutil
 import random
-import time
-
 import numpy as np
 import torch
 import torch.nn.functional as F
-from datetime import datetime
-
 import trimesh
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
 from Classification.inting import get_distr_real, get_distr_acc_generated, compute_fid
 from DataLoader import FastDataset
 from Demo_Only_Meshes import Get_landmarks
 from Demo_Only_Meshes.dest import elaborate_landmarks
-
 from Demo_Only_Meshes.new_demo_only_meshes import generate_meshes_from_landmarks
-
 from Model import DecoderRNN
-# from torch.utils.tensorboard import SummaryWriter
 from common_function import plot_graph, import_actor, build_face
 import warnings
+# from torch.utils.tensorboard import SummaryWriter
 
 warnings.filterwarnings("ignore")
 
@@ -32,6 +25,61 @@ torch.manual_seed(seed_value)
 random.seed(seed_value)
 np.random.seed(seed_value)
 
+
+def generate_mesh(gen, path_gen):
+    gen = gen.squeeze(0)
+
+    label = os.path.basename(path_gen)
+    face = label[label.find("_") + 1:label.find(".")]
+    if "FaceTalk" in face:
+        label_take = label[4 + label.find("_TA"):]
+        face = face[face.index("FaceTalk"):]
+    else:
+        label_take = label[1 + label.find("_"):]
+
+    # print(face, label_take)
+    if "FaceTalk" in path_gen:
+        path_aa = "Demo_Only_Meshes/Actors_Coma/" + face + ".ply"
+        path_mm = "Demo_Only_Meshes/Models/good_s2d_with_voca.pth.tar"
+        #  path_mm = "/mnt/diskone-first/mbicchierai/real_coma_s2d.pth.tar"
+    else:
+        path_aa = "/mnt/diskone-first/mbicchierai/COMA_Florence_Actors_Aligned/COMA_" + face + ".ply"
+        path_mm = "/mnt/diskone-first/mbicchierai/coma_florence_s2d_my_loss_aligned.pth.tar"
+
+    parser = argparse.ArgumentParser(description='Landmarks2Meshes')
+    parser.add_argument("--device", type=str, default="cuda:0")
+    parser.add_argument("--s2d_model", type=str,
+                        default=path_mm,
+                        help='path of the s2d model')
+    parser.add_argument("--actor", type=str,
+                        default=path_aa)
+    parser.add_argument("--save_path", type=str, default="testgen/",
+                        help='path to save')
+
+    args = parser.parse_args()
+
+    landmarks = gen
+
+    actor_mesh = trimesh.load(args.actor, process=False)
+    actor_landmarks = Get_landmarks.get_landmarks(actor_mesh.vertices)
+    save_path = args.save_path
+
+    shutil.rmtree(save_path, ignore_errors=True, onerror=None)
+    os.mkdir(os.path.join(save_path))
+    os.mkdir(os.path.join(save_path, 'Meshes'))
+    os.mkdir(os.path.join(save_path, 'Landmarks'))
+
+    template_path = './S2D/template/flame_model/FLAME_sample.ply'
+    save_path_meshes = os.path.join(save_path, 'Meshes')
+    save_landmarks_path = os.path.join(save_path, 'Landmarks')
+    # print('Landmarks Elaboration')
+    elaborate_landmarks(landmarks, actor_landmarks, actor_mesh.vertices, save_landmarks_path)
+
+    # print('Meshes Generation')
+    mesh = generate_meshes_from_landmarks(template_path, template_path, save_landmarks_path, save_path_meshes,
+                                          args.s2d_model)
+
+    return mesh
 
 
 def main():
@@ -52,9 +100,9 @@ def main():
         hidden_size = 512
         num_classes = 12
         output_size = (68 * 3)
-        frame_generate = 40
-        lr = 1e-5
-        epochs = 1000
+        frame_generate = 402048
+        lr = 1e-4
+        epochs = 1200
     else:
         train_path = "Landmark_dataset_flame_aligned/dataset_training/Partial2"
         test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
@@ -108,7 +156,7 @@ def main():
         if not (epoch + 1) % 10:
             print("Epoch: ", epoch + 1, " - Training loss: ", tot_loss / len(training_dataloader))
 
-        if not (epoch ) % 50:
+        if not (epoch +1) % 50:
             tot_loss_test = 0
             model.eval()
             check = True
@@ -116,7 +164,6 @@ def main():
             generated = torch.Tensor([]).to(device)
             labels = torch.Tensor([]).to(device)
             print("Starting Testing")
-            count = 0
             mean_err = []
             for landmark_animation, label, path_gen in testing_dataloader:
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
@@ -134,17 +181,16 @@ def main():
                 tot_loss_test += test_loss.item()
 
                 label = label.to(device)
+
                 generated = torch.cat([generated, output])
                 lamda = 1000
-                if count < 5:
-                    count += 1
-                    mesh_generated = generate_mesh(build_face(output, path_gen, actors_coma, name_actors_coma),
-                                                   path_gen[0]) * lamda
-                    mesh_real = generate_mesh(
-                        build_face(landmark_animation[:, 1:], path_gen, actors_coma, name_actors_coma),
-                        path_gen[0]) * lamda
+                mesh_generated = generate_mesh(build_face(output, path_gen, actors_coma, name_actors_coma),
+                                               path_gen[0]) * lamda
+                mesh_real = generate_mesh(
+                    build_face(landmark_animation[:, 1:], path_gen, actors_coma, name_actors_coma),
+                    path_gen[0]) * lamda
 
-                    mean_err.append(np.mean(np.sqrt(np.sum((mesh_generated - mesh_real) ** 2, axis=2))))
+                mean_err.append(np.mean(np.sqrt(np.sum((mesh_generated - mesh_real) ** 2, axis=2))))
 
                 labels = torch.cat([labels, label])
 
