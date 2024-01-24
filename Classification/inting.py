@@ -17,7 +17,7 @@ def get_distr_real():
     dataset_training = FastDataset(train_path, actors_coma, name_actors_coma)
     traning_dataloader = DataLoader(dataset_training, batch_size=1, shuffle=False, drop_last=False)
 
-    save_path = "Classification/Models/model_2_0.0001_512_COMA_DiffSplit_Simple_spost.pt"
+    save_path = "Classification/Models/model_2_0.0001_512_COMA_DiffSplit_Simple_spost_naima.pt"
     model = torch.load(save_path)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

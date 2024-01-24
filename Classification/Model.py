@@ -39,8 +39,8 @@ class SimpleLSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, num_classes):
         super(SimpleLSTM, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_size, hidden_size)
-        self.fc_1 = nn.Linear(hidden_size, num_classes)
+        self.fc = nn.Linear(hidden_size, num_classes)
+        #self.fc_1 = nn.Linear(hidden_size, num_classes)
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.input_size = input_size
@@ -57,7 +57,7 @@ class SimpleLSTM(nn.Module):
 
         # Decode the hidden state of the last time step
         out = self.fc(out[:, -1, :])
-        out = self.fc_1(out)
+        #out = self.fc_1(out)
 
         return out
 

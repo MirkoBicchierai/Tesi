@@ -16,14 +16,16 @@ from Demo_Only_Meshes.new_demo_only_meshes import generate_meshes_from_landmarks
 from Model import DecoderRNN
 from common_function import plot_graph, import_actor, build_face
 import warnings
+
 # from torch.utils.tensorboard import SummaryWriter
 
 warnings.filterwarnings("ignore")
 
-seed_value = 27
-torch.manual_seed(seed_value)
-random.seed(seed_value)
-np.random.seed(seed_value)
+
+# seed_value = 27
+# torch.manual_seed(seed_value)
+# random.seed(seed_value)
+# np.random.seed(seed_value)
 
 
 def generate_mesh(gen, path_gen):
@@ -37,10 +39,9 @@ def generate_mesh(gen, path_gen):
     else:
         label_take = label[1 + label.find("_"):]
 
-    # print(face, label_take)
     if "FaceTalk" in path_gen:
         path_aa = "Demo_Only_Meshes/Actors_Coma/" + face + ".ply"
-        path_mm = "Demo_Only_Meshes/Models/good_s2d_with_voca.pth.tar"
+        path_mm = "Naima_Model/IdSplit/fold_4/checkpoint.pth.tar"
         #  path_mm = "/mnt/diskone-first/mbicchierai/real_coma_s2d.pth.tar"
     else:
         path_aa = "/mnt/diskone-first/mbicchierai/COMA_Florence_Actors_Aligned/COMA_" + face + ".ply"
@@ -72,13 +73,9 @@ def generate_mesh(gen, path_gen):
     template_path = './S2D/template/flame_model/FLAME_sample.ply'
     save_path_meshes = os.path.join(save_path, 'Meshes')
     save_landmarks_path = os.path.join(save_path, 'Landmarks')
-    # print('Landmarks Elaboration')
     elaborate_landmarks(landmarks, actor_landmarks, actor_mesh.vertices, save_landmarks_path)
-
-    # print('Meshes Generation')
     mesh = generate_meshes_from_landmarks(template_path, template_path, save_landmarks_path, save_path_meshes,
                                           args.s2d_model)
-
     return mesh
 
 
@@ -87,22 +84,22 @@ def main():
     print(device)
 
     coma = True
-    loss_l2 = False
+    loss_l2 = True
     if loss_l2:
         loss_ty = "L2"
     else:
         loss_ty = "L1"
     if coma:
-        train_path = "Landmark_dataset_flame_aligned_coma/dataset_training"
-        test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
-        actors_path = "Actors_Coma/"
+        train_path = "Landmark_dataset_flame_aligned_coma/30frame/dataset_training"  # "Landmark_dataset_flame_aligned_coma/dataset_training"
+        test_path = "Landmark_dataset_flame_aligned_coma/30frame/dataset_testing"  # "Landmark_dataset_flame_aligned_coma/dataset_testing"
+        actors_path = "actors_new_coma/"  # "Actors_Coma/"
         type_dataset = "COMA"
         hidden_size = 512
         num_classes = 12
         output_size = (68 * 3)
-        frame_generate = 402048
-        lr = 1e-4
-        epochs = 1200
+        frame_generate = 30  # 40
+        lr = 1e-5
+        epochs = 2000
     else:
         train_path = "Landmark_dataset_flame_aligned/dataset_training/Partial2"
         test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
@@ -116,7 +113,7 @@ def main():
         epochs = 1200
 
     save_path = "Models/model_" + loss_ty + "_" + str(epochs) + "_" + str(lr) + "_" + str(
-        hidden_size) + "_" + type_dataset + "_DiffSplit.pt"
+        hidden_size) + "_" + type_dataset + "_DiffSplit_fsk_30frame.pt"
 
     actors_coma, name_actors_coma = import_actor(path=actors_path)
     # writer = SummaryWriter("TensorBoard/" + loss_ty + "_" + str(epochs) + "_" + str(lr) + "_" + str(
@@ -154,16 +151,14 @@ def main():
         # writer.add_scalar('Loss/' + type_dataset + '/train', tot_loss / len(training_dataloader), epoch + 1)
 
         if not (epoch + 1) % 10:
-            print("Epoch: ", epoch + 1, " - Training loss: ", tot_loss / len(training_dataloader))
+            print("Epoch:", epoch + 1, "- Training loss:", tot_loss / len(training_dataloader))
 
-        if not (epoch +1) % 50:
+        if not (epoch + 1) % 50:
             tot_loss_test = 0
             model.eval()
             check = True
-
             generated = torch.Tensor([]).to(device)
             labels = torch.Tensor([]).to(device)
-            print("Starting Testing")
             mean_err = []
             for landmark_animation, label, path_gen in testing_dataloader:
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
@@ -203,8 +198,8 @@ def main():
 
             # writer.add_scalar('Loss/' + type_dataset + '/validation', tot_loss_test / len(testing_dataloader),
             #                   epoch + 1)
-            print("Epoch: ", epoch + 1, " - Testing loss: ", tot_loss_test / len(testing_dataloader))
-            print("Accuracy=", acc, "FID=", fid, "mm error=", mean_err)
+            print("Epoch:", epoch + 1, "- Testing loss:", tot_loss_test / len(testing_dataloader))
+            print("Accuracy:", acc, "FID:", fid, "mm error:", mean_err)
             model.train()
 
     torch.save(model, save_path)
