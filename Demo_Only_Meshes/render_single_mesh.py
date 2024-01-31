@@ -1,12 +1,42 @@
+import shutil
+from os.path import isfile
+
+import S2D.models as models
+import S2D.spiral_utils as spiral_utils
+import S2D.shape_data as shape_data
+import S2D.autoencoder_dataset as autoencoder_dataset
+import S2D.save_meshes as save_meshes
 import argparse
+import pickle
+from torch.utils.data import DataLoader
+from sklearn.metrics.pairwise import euclidean_distances
+from my_test_funcs import test_autoencoder_dataloader
+import torch
+import Get_landmarks as Get_landmarks
+import time
 import os
 import cv2
+import tempfile
 import numpy as np
+from subprocess import call
+from psbody.mesh import Mesh
 import pyrender
 import trimesh
-from psbody.mesh import Mesh
+import glob
+
 
 # os.environ['PYOPENGL_PLATFORM'] = 'egl'
+
+
+def get_unit_factor(unit):
+    if unit == 'mm':
+        return 1000.0
+    elif unit == 'cm':
+        return 100.0
+    elif unit == 'm':
+        return 1.0
+    else:
+        raise ValueError('Unit not supported')
 
 
 def render_mesh_helper(mesh, t_center, rot=np.zeros(3), tex_img=None, v_colors=None, errors=None, error_unit='m',
@@ -88,7 +118,17 @@ def render_mesh_helper(mesh, t_center, rot=np.zeros(3), tex_img=None, v_colors=N
     return color[..., ::-1]
 
 
-def render_mesh(vertices, template, save_path, image_name, uv_template_fname='', texture_img_fname=''):
+def render_sequence_meshes(sequence_vertices, template, out_path, out_fname, fps, uv_template_fname='',
+                           texture_img_fname=''):
+    if not os.path.exists(out_path):
+        os.makedirs(out_path)
+
+    tmp_video_file = tempfile.NamedTemporaryFile('w', suffix='.mp4', dir=out_path)
+    if int(cv2.__version__[0]) < 3:
+        writer = cv2.VideoWriter(tmp_video_file.name, cv2.cv.CV_FOURCC(*'mp4v'), fps, (800, 800), True)
+    else:
+        writer = cv2.VideoWriter(tmp_video_file.name, cv2.VideoWriter_fourcc(*'mp4v'), fps, (800, 800), True)
+
     if os.path.exists(uv_template_fname) and os.path.exists(texture_img_fname):
         uv_template = Mesh(filename=uv_template_fname)
         vt, ft = uv_template.vt, uv_template.ft
@@ -97,44 +137,230 @@ def render_mesh(vertices, template, save_path, image_name, uv_template_fname='',
         vt, ft = None, None
         tex_img = None
 
-    center = np.mean(vertices, axis=0)
+    num_frames = sequence_vertices.shape[0]
+    center = np.mean(sequence_vertices[0], axis=0)
+    i = 0
+    for i_frame in range(num_frames - 2):
+        render_mesh = Mesh(sequence_vertices[i_frame], template.f)
+        if vt is not None and ft is not None:
+            render_mesh.vt, render_mesh.ft = vt, ft
+        img = render_mesh_helper(render_mesh, center, tex_img=tex_img)
+        writer.write(img)
+        # plt.savefig('/home/federico/Scrivania/Universita/TESI/generated/' + 'image' + str(i))
+        i = i + 1
+    writer.release()
 
-    render_mesh = Mesh(vertices, template.faces)
-    if vt is not None and ft is not None:
-        render_mesh.vt, render_mesh.ft = vt, ft
-    img = render_mesh_helper(render_mesh, center, tex_img=tex_img)
-    cv2.imwrite(os.path.join(save_path, image_name), img[:, 100:-100])
+    video_fname = os.path.join(out_path, out_fname)
+    cmd = ('ffmpeg' + ' -i {0} -vcodec h264 -ac 2 -channel_layout stereo -pix_fmt yuv420p -ar 22050 {1}'.format(
+        tmp_video_file.name, video_fname)).split()
+    call(cmd)
 
 
+def generate_mesh_video(out_path, out_fname, meshes_path_fname, fps, template):
+    sequence_fnames = sorted(glob.glob(os.path.join(meshes_path_fname, '*.ply*')))
+
+    uv_template_fname = template
+    sequence_vertices = []
+    f = None
+
+    for frame_idx, mesh_fname in enumerate(sequence_fnames):
+        frame = Mesh(filename=mesh_fname)
+        sequence_vertices.append(frame.v)
+        if f is None:
+            f = frame.f
+
+    template = Mesh(sequence_vertices[0], f)
+    sequence_vertices = np.stack(sequence_vertices)
+    render_sequence_meshes(sequence_vertices, template, out_path, out_fname, fps, uv_template_fname=uv_template_fname,
+                           texture_img_fname='')
+
+
+def elaborate_landmarks(landmarks, actor_landmarks, actor_vertices, save_path):
+    if not os.path.exists(os.path.join(save_path, 'points_input')):
+        os.makedirs(os.path.join(save_path, 'points_input'))
+
+    if not os.path.exists(os.path.join(save_path, 'points_target')):
+        os.makedirs(os.path.join(save_path, 'points_target'))
+
+    if not os.path.exists(os.path.join(save_path, 'landmarks_target')):
+        os.makedirs(os.path.join(save_path, 'landmarks_target'))
+
+    if not os.path.exists(os.path.join(save_path, 'landmarks_input')):
+        os.makedirs(os.path.join(save_path, 'landmarks_input'))
+
+    for j in range(len(landmarks)):
+        np.save(os.path.join(save_path, 'points_input', '{0:08}_frame'.format(j)), actor_vertices)
+        np.save(os.path.join(save_path, 'points_target', '{0:08}_frame'.format(j)), actor_vertices)
+        np.save(os.path.join(save_path, 'landmarks_target', '{0:08}_frame'.format(j)), landmarks[j])
+        np.save(os.path.join(save_path, 'landmarks_input', '{0:08}_frame'.format(j)), actor_landmarks)
+
+    files = []
+
+    for r, d, f in os.walk(os.path.join(save_path, 'points_input')):
+        for file in f:
+            if '.npy' in file:
+                files.append(os.path.splitext(file)[0])
+    np.save(os.path.join(save_path, 'paths_test.npy'), sorted(files))
+
+    files = []
+    for r, d, f in os.walk(os.path.join(save_path, 'landmarks_target')):
+        for file in f:
+            if '.npy' in file:
+                files.append(os.path.splitext(file)[0])
+    np.save(os.path.join(save_path, 'landmarks_test.npy'), sorted(files))
+    print('Done')
+
+
+def generate_meshes_from_landmarks(template_path, reference_mesh_path, landmarks_path, save_meshes_path,
+                                   s2d_model_path):
+    filter_sizes_enc = [[3, 16, 32, 64, 128], [[], [], [], [], []]]
+    filter_sizes_dec = [[128, 64, 32, 32, 16], [[], [], [], [], 3]]
+    nz = 16
+    ds_factors = [4, 4, 4, 4]
+    reference_points = [[3567, 4051, 4597]]
+    nbr_landmarks = 68
+    step_sizes = [2, 2, 1, 1, 1]
+    dilation = [2, 2, 1, 1, 1]
+    device_idx = 0
+    torch.cuda.get_device_name(device_idx)
+
+    meshpackage = 'trimesh'
+
+    shapedata = shape_data.ShapeData(nVal=100,
+                                     test_file=landmarks_path + '/test.npy',
+                                     reference_mesh_file=reference_mesh_path,
+                                     normalization=False,
+                                     meshpackage=meshpackage, load_flag=False)
+
+    shapedata.n_vertex = 5023
+    shapedata.n_features = 3
+
+    with open(
+            './S2D/template/template/COMA_downsample/downsampling_matrices.pkl',
+            'rb') as fp:
+        downsampling_matrices = pickle.load(fp)
+
+    M_verts_faces = downsampling_matrices['M_verts_faces']
+    M = [trimesh.base.Trimesh(vertices=M_verts_faces[i][0], faces=M_verts_faces[i][1], process=False) for i in
+         range(len(M_verts_faces))]
+
+    A = downsampling_matrices['A']
+    D = downsampling_matrices['D']
+    U = downsampling_matrices['U']
+    F = downsampling_matrices['F']
+
+    for i in range(len(ds_factors)):
+        dist = euclidean_distances(M[i + 1].vertices, M[0].vertices[reference_points[0]])
+        reference_points.append(np.argmin(dist, axis=0).tolist())
+
+    Adj, Trigs = spiral_utils.get_adj_trigs(A, F, shapedata.reference_mesh, meshpackage='trimesh')
+
+    spirals_np, spiral_sizes, spirals = spiral_utils.generate_spirals(step_sizes,
+                                                                      M, Adj, Trigs,
+                                                                      reference_points=reference_points,
+                                                                      dilation=dilation, random=False,
+                                                                      meshpackage='trimesh',
+                                                                      counter_clockwise=True)
+
+    sizes = [x.vertices.shape[0] for x in M]
+
+    device = torch.device("cuda:" + str(device_idx) if torch.cuda.is_available() else "cpu")
+
+    tspirals = [torch.from_numpy(s).long().to(device) for s in spirals_np]
+
+    bU = []
+    bD = []
+    for i in range(len(D)):
+        d = np.zeros((1, D[i].shape[0] + 1, D[i].shape[1] + 1))
+        u = np.zeros((1, U[i].shape[0] + 1, U[i].shape[1] + 1))
+        d[0, :-1, :-1] = D[i].todense()
+        u[0, :-1, :-1] = U[i].todense()
+        d[0, -1, -1] = 1
+        u[0, -1, -1] = 1
+        bD.append(d)
+        bU.append(u)
+
+    tD = [torch.from_numpy(s).float().to(device) for s in bD]
+    tU = [torch.from_numpy(s).float().to(device) for s in bU]
+
+    device = torch.device("cuda:" + str(device_idx) if torch.cuda.is_available() else "cpu")
+    dataset_test = autoencoder_dataset.autoencoder_dataset(neutral_root_dir=landmarks_path, points_dataset='test',
+                                                           shapedata=shapedata,
+                                                           normalization=False, template=reference_mesh_path)
+
+    dataloader_test = DataLoader(dataset_test, batch_size=1,
+                                 shuffle=False, num_workers=4)
+
+    model = models.SpiralAutoencoder(filters_enc=filter_sizes_enc,
+                                     filters_dec=filter_sizes_dec,
+                                     latent_size=nz,
+                                     sizes=sizes,
+                                     nbr_landmarks=nbr_landmarks,
+                                     spiral_sizes=spiral_sizes,
+                                     spirals=tspirals,
+                                     D=tD, U=tU, device=device).to(device)
+
+    checkpoint = torch.load(s2d_model_path, map_location=device)
+    model.load_state_dict(checkpoint['autoencoder_state_dict'])
+
+    predictions, inputs, lands, targets = test_autoencoder_dataloader(device, model, dataloader_test, shapedata)
+    np.save(os.path.join(save_meshes_path, 'targets'), targets)
+    np.save(os.path.join(save_meshes_path, 'predictions'), predictions)
+    save_meshes.save_meshes(predictions, save_meshes_path, n_meshes=len(predictions), template_path=template_path)
+    # print('Done')
+    return predictions
 def main():
-    parser = argparse.ArgumentParser(description='Python file to render a mesh into an image')
-    parser.add_argument("--save_path", type=str, default='img', help='path for video')
-    parser.add_argument("--mesh_path", type=str,
-                        default="videoCOMA/WHITE/video30/GeneratedVideo_FaceTalk_170811_03274_TA_mouth-extreme/Meshes/tst039.ply",
-                        help='path for the meshes sequence')
+    folder_path = "../Landmark_dataset_flame_aligned_coma/dataset_testing"
+    k = 40
+    for name_f in os.listdir(folder_path):
+        ch_take = name_f[name_f.find("_FaceTalk") + 1 : -4]
+        path_aa = "actors_new_coma/" + ch_take + ".ply"
+        path_mm = "../Naima_Model/IdSplit/fold_4/checkpoint.pth.tar"
+        video_save = "video" + str(k) + "_gt/"
 
-    # videoCOMAFlorence/WHITE/video30/GeneratedVideo_CH02_Kissy/Meshes/tst059.ply
-    parser.add_argument("--flame_template", type=str,
-                        default="S2D/template/flame_model/FLAME_sample.ply",
-                        help='template_path')
-    parser.add_argument("--image_name", type=str, default='mouth-extreme_FaceTalk_170811_03274_TA_TA_6.png', help='name of the image')
-    # Kissy_CH02_6.png
-    args = parser.parse_args()
+        parser = argparse.ArgumentParser(description='Landmarks2Meshes')
+        parser.add_argument("--device", type=str, default="cuda:0")
+        parser.add_argument("--s2d_model", type=str,
+                            default=path_mm,
+                            help='path of the s2d model')
+        parser.add_argument("--actor", type=str,
+                            default=path_aa)
+        parser.add_argument("--landmarks_path", type=str,
+                            default=folder_path + "/" + name_f,
+                            help='path of the generated_landmarks')
+        parser.add_argument("--save_path", type=str, default=video_save + "GeneratedVideo_" + name_f,
+                            help='path to save')
+        args = parser.parse_args()
 
-    if not os.path.exists(args.save_path):
-        os.makedirs(args.save_path)
+        landmarks = np.load(args.landmarks_path, allow_pickle=True)
 
-    template = trimesh.load(args.flame_template, process=False)
-    mesh = trimesh.load(args.mesh_path, process=False)
+        actor_mesh = trimesh.load(args.actor, process=False)
+        actor_landmarks = Get_landmarks.get_landmarks(actor_mesh.vertices)
+        save_path = args.save_path
+        os.mkdir(os.path.join(save_path))
+        os.mkdir(os.path.join(save_path, 'Meshes'))
+        os.mkdir(os.path.join(save_path, 'Landmarks'))
 
-    print('Image Generation')
+        template_path = './S2D/template/flame_model/FLAME_sample.ply'
+        save_path_meshes = os.path.join(save_path, 'Meshes')
+        save_landmarks_path = os.path.join(save_path, 'Landmarks')
+        print('Landmarks Elaboration')
+        elaborate_landmarks(landmarks, actor_landmarks, actor_mesh.vertices, save_landmarks_path)
 
-    render_mesh(mesh.vertices,
-                template,
-                args.save_path,
-                args.image_name)
+        print('Meshes Generation')
+        generate_meshes_from_landmarks(template_path, template_path, save_landmarks_path, save_path_meshes,
+                                       args.s2d_model)
 
-    print('done')
+        save_video_path = os.path.join(save_path)
+
+        print('Video Generation')
+        generate_mesh_video(save_video_path,
+                            'example.mp4',
+                            save_path_meshes,
+                            k,
+                            template_path)
+
+        print('done')
 
 
 if __name__ == '__main__':

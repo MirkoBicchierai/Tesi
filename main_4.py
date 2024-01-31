@@ -1,4 +1,5 @@
 import argparse
+import copy
 import os
 import shutil
 import random
@@ -113,7 +114,7 @@ def main():
         epochs = 1200
 
     save_path = "Models/model_" + loss_ty + "_" + str(epochs) + "_" + str(lr) + "_" + str(
-        hidden_size) + "_" + type_dataset + "_DiffSplit_fsk_30frame.pt"
+        hidden_size) + "_" + type_dataset + "_DiffSplit_fsk_30frameSKSK.pt"
 
     actors_coma, name_actors_coma = import_actor(path=actors_path)
     # writer = SummaryWriter("TensorBoard/" + loss_ty + "_" + str(epochs) + "_" + str(lr) + "_" + str(
@@ -140,6 +141,19 @@ def main():
                 optimizer.zero_grad()
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
                 output = model(landmark_animation[:, idF], label, frame_generate - idF)
+
+                output[:, 0] -= landmark_animation[:, idF]
+
+                for i in range(1, frame_generate - idF):
+                    output[:, i] -= output[:, i-1]
+
+                # sus = copy.deepcopy(landmark_animation)
+                #
+                # sus[:, idF+1] -= sus[:, idF]
+                #
+                # for i in range(idF+2, sus[:, 1:].shape[1]):
+                #     sus[:, i] -= sus[:, i - 1]
+
                 if loss_l2:
                     loss = F.mse_loss(output, landmark_animation[:, 1 + idF:])
                 else:
@@ -169,6 +183,16 @@ def main():
                     if count_plot < 9:
                         plot_graph(build_face(output, path_gen, actors_coma, name_actors_coma), path_gen, epoch)
                         count_plot = count_plot + 1
+                #
+                # output[:, 0] += landmark_animation[:, 0]
+                #
+                # for i in range(1, frame_generate):
+                #     output[:, i] += output[:, i - 1]
+
+                # landmark_animation[:, idF + 1] -= landmark_animation[:, idF]
+                #
+                # for i in range(idF + 2, landmark_animation[:, 1:].shape[1]):
+                #     landmark_animation[:, i] -= landmark_animation[:, i - 1]
 
                 if loss_l2:
                     test_loss = F.mse_loss(output, landmark_animation[:, 1:])

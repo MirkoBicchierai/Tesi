@@ -90,14 +90,14 @@ def main():
     else:
         loss_ty = "L1"
     if coma:
-        train_path = "Landmark_dataset_flame_aligned_coma/30frame/dataset_training"  # "Landmark_dataset_flame_aligned_coma/dataset_training"
-        test_path = "Landmark_dataset_flame_aligned_coma/30frame/dataset_testing"  # "Landmark_dataset_flame_aligned_coma/dataset_testing"
+        train_path = "Landmark_dataset_flame_aligned_coma/dataset_training"  # "Landmark_dataset_flame_aligned_coma/30frame/dataset_training"
+        test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"  # "Landmark_dataset_flame_aligned_coma/30frame/dataset_testing"
         actors_path = "actors_new_coma/"  # "Actors_Coma/"
         type_dataset = "COMA"
         hidden_size = 512
         num_classes = 12
         output_size = (68 * 3)
-        frame_generate = 30  # 40
+        frame_generate = 40  # 40
         lr = 1e-5
         epochs = 2000
     else:
@@ -136,40 +136,41 @@ def main():
     for epoch in tqdm(range(epochs)):
         tot_loss = 0
         for landmark_animation, label, path_gen in training_dataloader:
-            for idF in reversed(range(landmark_animation[:, 1:].shape[1])):
-                optimizer.zero_grad()
-                landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
-                output = model(landmark_animation[:, idF], label, frame_generate - idF)
-                if loss_l2:
-                    loss = F.mse_loss(output, landmark_animation[:, 1 + idF:])
-                else:
-                    loss = F.l1_loss(output, landmark_animation[:, 1 + idF:])
-                tot_loss += loss.item()
-                loss.backward()
-                optimizer.step()
+            # for idF in reversed(range(landmark_animation[:, 1:].shape[1])):
+            optimizer.zero_grad()
+            landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
+            output = model(landmark_animation[:, 0], label, frame_generate)
+
+            if loss_l2:
+                loss = F.mse_loss(output, landmark_animation[:, 1:])
+            else:
+                loss = F.l1_loss(output, landmark_animation[:, 1:])
+            tot_loss += loss.item()
+            loss.backward()
+            optimizer.step()
 
         # writer.add_scalar('Loss/' + type_dataset + '/train', tot_loss / len(training_dataloader), epoch + 1)
 
         if not (epoch + 1) % 10:
             print("Epoch:", epoch + 1, "- Training loss:", tot_loss / len(training_dataloader))
 
-        if not (epoch + 1) % 100:
+        if not (epoch + 1) % 500:
             tot_loss_test = 0
             model.eval()
-            count_plot = 0
+            check = True
             generated = torch.Tensor([]).to(device)
             labels = torch.Tensor([]).to(device)
             mean_err = []
+            count = 0
             for landmark_animation, label, path_gen in testing_dataloader:
                 landmark_animation = landmark_animation.type(torch.FloatTensor).to(device)
 
                 with torch.no_grad():
                     output = model(landmark_animation[:, 0], label, frame_generate)
 
-                    if count_plot < 9:
+                    if check:
                         plot_graph(build_face(output, path_gen, actors_coma, name_actors_coma), path_gen, epoch)
-                        count_plot = count_plot + 1
-
+                    check = False
                 if loss_l2:
                     test_loss = F.mse_loss(output, landmark_animation[:, 1:])
                 else:
@@ -179,16 +180,17 @@ def main():
                 label = label.to(device)
 
                 generated = torch.cat([generated, output])
-                lamda = 1000
-                mesh_generated = generate_mesh(build_face(output, path_gen, actors_coma, name_actors_coma),
-                                               path_gen[0]) * lamda
-                mesh_real = generate_mesh(
-                    build_face(landmark_animation[:, 1:], path_gen, actors_coma, name_actors_coma),
-                    path_gen[0]) * lamda
-
-                mean_err.append(np.mean(np.sqrt(np.sum((mesh_generated - mesh_real) ** 2, axis=2))))
-
                 labels = torch.cat([labels, label])
+
+                if count < 5:
+                    lamda = 1000
+                    mesh_generated = generate_mesh(build_face(output, path_gen, actors_coma, name_actors_coma),
+                                                   path_gen[0]) * lamda
+                    mesh_real = generate_mesh(
+                        build_face(landmark_animation[:, 1:], path_gen, actors_coma, name_actors_coma),
+                        path_gen[0]) * lamda
+                    mean_err.append(np.mean(np.sqrt(np.sum((mesh_generated - mesh_real) ** 2, axis=2))))
+                    count += 1
 
             m_fake, cov_fake, acc = get_distr_acc_generated(generated, labels)
 

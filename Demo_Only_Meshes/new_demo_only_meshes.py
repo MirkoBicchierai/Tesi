@@ -1,8 +1,6 @@
 import shutil
 from os.path import isfile
 
-
-
 import S2D.models as models
 import S2D.spiral_utils as spiral_utils
 import S2D.shape_data as shape_data
@@ -25,6 +23,7 @@ from psbody.mesh import Mesh
 import pyrender
 import trimesh
 import glob
+
 
 # os.environ['PYOPENGL_PLATFORM'] = 'egl'
 
@@ -311,12 +310,13 @@ def generate_meshes_from_landmarks(template_path, reference_mesh_path, landmarks
     # print('Done')
     return predictions
 
+
 if __name__ == "__main__":
     folder_path = "GraphTestCOMA"  # GraphTestCOMAFlorence
-    gen_fps = [40]
+    gen_fps = [30]
 
     for k in gen_fps:
-        video_save = "video"+str(k)+"/"
+        video_save = "video" + str(k) + "/"
         shutil.rmtree(video_save, ignore_errors=True, onerror=None)
         os.makedirs(video_save)
 
@@ -327,8 +327,8 @@ if __name__ == "__main__":
                 if "FaceTalk" in name_f:
                     ch_take = name_f[:name_f.find("_TA") + 3]
                     label_take = name_f[4 + name_f.find("_TA"):]
-                    path_aa = "Actors_Coma/" + ch_take + ".ply"
-                    path_mm = "Models/good_s2d_with_voca.pth.tar"
+                    path_aa = "actors_new_coma/" + ch_take + ".ply"
+                    path_mm = "../Naima_Model/IdSplit/fold_4/checkpoint.pth.tar"
                     #  path_mm = "/mnt/diskone-first/mbicchierai/real_coma_s2d.pth.tar"
                 else:
                     ch_take = name_f[:name_f.find("_")]
@@ -373,10 +373,12 @@ if __name__ == "__main__":
 
                 save_video_path = os.path.join(save_path)
 
-                # print('Video Generation')
-                # generate_mesh_video(save_video_path,
-                #                     'example.mp4',
-                #                     save_path_meshes,
-                #                     k,
-                #                     template_path)
-                print('done')
+                print('Video Generation')
+                generate_mesh_video(save_video_path,
+                                    'example.mp4',
+                                    save_path_meshes,
+                                    k,
+                                    template_path)
+
+            print('done')
+

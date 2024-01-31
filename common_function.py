@@ -295,6 +295,6 @@ def plot_graph(vector, label, epoch):
         if epoch == -1:
             gif_filename = 'GraphTest/' + face + "_" + label_ptr + '/' + face + "_" + label_ptr + '.gif'
         else:
-            gif_filename = 'GraphTrain/epoch' + str(epoch + 1) + "_" + label_ptr + '.gif'
+            gif_filename = 'GraphTrain/epoch' + str(epoch + 1) + "_" + label_ptr + "_" + face + '.gif'
         frames[0].save(gif_filename, format="GIF", append_images=frames[1:], save_all=True, duration=60, loop=0)
         for file in png_files: os.remove(file)
