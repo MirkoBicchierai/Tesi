@@ -57,7 +57,7 @@ def main():
     output_folder = "sampling/"
     tmp_out_ = "tmp/"
     folders = os.listdir(input_folder)
-
+    gen_frame = 31  # 41
     shutil.rmtree(output_folder, ignore_errors=False, onerror=None)
     os.makedirs(output_folder)
 
@@ -76,13 +76,13 @@ def main():
             os.makedirs(tmp_out)
             tmp_num_frame = len(os.listdir(tmp_in))
 
-            if tmp_num_frame < 41:
+            if tmp_num_frame < gen_frame:
                 target_frames = tmp_num_frame
                 n = 4
                 down_sample_animation(tmp_in, tmp_out_, target_frames, n_interpolation=n)
                 tmp_in = tmp_out_
 
-            target_frames = 41
+            target_frames = gen_frame
             n = 1
             down_sample_animation(tmp_in, tmp_out, target_frames, n_interpolation=n)
 

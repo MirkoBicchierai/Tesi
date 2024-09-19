@@ -2,7 +2,7 @@ import shutil
 import torch
 import os
 from torch.utils.data import DataLoader
-from DataLoader import FastDataset
+from DataLoader import FastDatasetC
 from common_function import import_actor, setup_folder_testing_validation
 from torchmetrics import Accuracy
 
@@ -15,7 +15,7 @@ def search(model_list, actors_path, num_classes, device, test_sets_path):
         model = torch.load(model_path)
         model.eval()
 
-        dataset_test = FastDataset(test_sets_path, actors_coma, name_actors_coma)
+        dataset_test = FastDatasetC(test_sets_path, actors_coma, name_actors_coma)
         testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=False, drop_last=False)
         tot_acc_test = 0
         accuracy = Accuracy(task="multiclass", num_classes=num_classes).to(device)
@@ -60,7 +60,7 @@ def calculate_accuracy_best_gen(best_model_list, best_gen, actors_path, num_clas
         model_path = "Models/" + p
         model = torch.load(model_path)
         model.eval()
-        dataset_test = FastDataset(test_path, actors_coma, name_actors_coma)
+        dataset_test = FastDatasetC(test_path, actors_coma, name_actors_coma)
         testing_dataloader = DataLoader(dataset_test, batch_size=1, shuffle=False, drop_last=False)
         tot_acc_test = 0
         accuracy = Accuracy(task="multiclass", num_classes=num_classes).to(device)

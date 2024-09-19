@@ -13,10 +13,10 @@ def main():
     coma = True
 
     if coma:
-        test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
-        actors_path = "Actors_Coma/"
-        save_path = "Models/model_L1_1200_1e-05_2048_COMA.pt"
-        frame_generate = 40
+        test_path ="Landmark_dataset_flame_aligned_coma/30frame/dataset_testing" # "Landmark_dataset_flame_aligned_coma/dataset_testing"
+        actors_path = "actors_new_coma/"
+        save_path = "Models/model_L2_2000_1e-05_512_COMA_DiffSplit_fsk_30frame.pt"
+        frame_generate = 30 # 40
     else:
         test_path = "Landmark_dataset_flame_aligned/dataset_testing/Partial2"
         actors_path = "Actors/"

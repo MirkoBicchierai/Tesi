@@ -55,7 +55,7 @@ def generate_spirals(step_sizes, M, Adj, Trigs, reference_points, dilation=None,
         sp = get_spirals(mesh_vertices, Adj[i],Trigs[i],reference_points[i], n_steps=step_sizes[i],\
                          padding='zero', counter_clockwise = counter_clockwise, random = random)
         Adj_spirals.append(sp)
-        print('spiral generation for hierarchy %d (%d vertices) finished' %(i,len(Adj_spirals[-1])))
+        # print('spiral generation for hierarchy %d (%d vertices) finished' %(i,len(Adj_spirals[-1])))
 
     
     ## Dilated convolution
@@ -81,7 +81,7 @@ def generate_spirals(step_sizes, M, Adj, Trigs, reference_points, dilation=None,
     for i in range(len(L)):
         sz = L[i].mean() + nb_stds*L[i].std()
         spiral_sizes.append(int(sz))
-        print('spiral sizes for hierarchy %d:  %d' %(i,spiral_sizes[-1]))
+        # print('spiral sizes for hierarchy %d:  %d' %(i,spiral_sizes[-1]))
     
 
     # 1) fill with -1 (index to the dummy vertex, i.e the zero padding) the spirals with length smaller than the chosen one

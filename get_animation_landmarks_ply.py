@@ -1,6 +1,6 @@
 import trimesh
 from Get_landmarks import get_landmarks
-from tqdm import tqdm
+# from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
@@ -61,7 +61,7 @@ def plot_graph(vector, label_ptr, face, main_fold):
 
 def save_array(path, save, fold, do_graph):
     folders = get_folder(path)
-    for f in tqdm(folders):
+    for f in folders:
         actual_label = os.path.basename(os.path.normpath(f))
         actual_face = (f.split(os.sep)[-2]).split("_")[-1]
 
