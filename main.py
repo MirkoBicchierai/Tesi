@@ -32,7 +32,7 @@ def main():
         test_path = "Landmark_dataset_flame_aligned_coma/dataset_testing"
         actors_path = "Actors_Coma/"
         type_dataset = "COMA"
-        hidden_size = 2049
+        hidden_size = 256
         num_classes = 12
         output_size = (68 * 3)
         frame_generate = 40
